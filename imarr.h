@@ -3,8 +3,9 @@
 
 class im_ind {
  public:
- im_ind(int _i, int _j) : i(_i), j(_j) {}
-    int i, j;
+ im_ind(int _i, int _j, int _k) : i(_i), j(_j), k(_k) {}
+ im_ind(int _i, int _j) : i(_i), j(_j), k(0) {}
+    int i, j, k;
 };
 
 template<class T>
@@ -33,45 +34,58 @@ class rgbt {
 template<class T>
 class imarr {
  public:
-    int h, w;
+    int h, w, d;
     bool owndata;
     T *data;
 
     imarr() {}
-    imarr(int _h, int _w) 
-        : h(_h), w(_w) 
+ imarr(int _h, int _w, int _d) 
+     : h(_h), w(_w), d(_d) 
     {
-        data = new T[h*w];
+        data = new T[h*w*d];
+        owndata = true;
+    }
+ imarr(int _h, int _w)
+     : h(_h), w(_w), d(1)
+    {
+        data = new T[h*w*d];
         owndata = true;
     }
 
-    imarr(int _h, int _w, T* _data)
-        : h(_h), w(_w), data(_data), owndata(false) {}
+ imarr(int _h, int _w, int _d, T* _data)
+     : h(_h), w(_w), d(_d) data(_data), owndata(false) {}
+ imarr(int _h, int _w, T* _data)
+     : h(_h), w(_w), d(1) data(_data), owndata(false) {}
 
-    imarr(const imarr<T> &other)
-        : h(other.h), w(other.w), owndata(true) 
+    imarr(const imarr<T> &o)
+        : h(o.h), w(o.w), d(o.d) owndata(true) 
     {
-        data = new T[h*w];
+        data = new T[h*w*d];
         for (int i=0; i<h; i++) {
             for (int j=0; j<w; j++) {
-                setitem(im_ind(i,j), other.getitem(im_ind(i,j)));
+                for (int k=0; k<d; k++) {
+                    setitem(im_ind(i,j,k), o.getitem(im_ind(i,j,k)));
+                }
             }
         }
     }
 
-    imarr<T>& operator=(const imarr<T> &other) {
-        if (h != other.h || w != other.w) {
+    imarr<T>& operator=(const imarr<T> &o) {
+        if (h != o.h || w != o.w || d != o.d) {
             if (owndata) {
                 delete[] data;
             }
             owndata = true;
-            data = new T[other.h*other.w];
-            h = other.h;
-            w = other.w;
+            data = new T[o.h*o.w*o.d];
+            h = o.h;
+            w = o.w;
+            d = o.d
         }
         for (int i=0; i<h; i++) {
             for (int j=0; j<w; j++) {
-                setitem(im_ind(i,j), other.getitem(im_ind(i,j)));
+                for (int k=0; k<d; k++) {
+                    setitem(im_ind(i,j,k), o.getitem(im_ind(i,j,k)));
+                }
             }
         }
     }
@@ -81,17 +95,18 @@ class imarr {
 
 
     T getitem(im_ind i) const {
-        return data[i.i*w + i.j];
+        return data[i.i*w*d + i.j*d + i.k];
     }
     void setitem(im_ind i, T& v) {
-        data[i.i*w + i.j] = v;
+        data[i.i*w*d + i.j*d + i.k] = v;
     }
 
     T& operator[](im_ind i) {
-        return data[i.i*w + i.j];
+        return data[i.i*w*d + i.j*d + i.k];
     }
 };
 
 
 #endif // _IMARR_H
 
+ 
