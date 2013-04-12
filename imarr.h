@@ -83,7 +83,7 @@ class imarr {
     T getitem(im_ind i) const {
         return data[i.i*w + i.j];
     }
-    void setitem(im_ind i, T& v) {
+    void setitem(im_ind i, T v) {
         data[i.i*w + i.j] = v;
     }
 
