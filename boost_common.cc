@@ -1,5 +1,6 @@
 #include <boost_common.h>
 #include <boilerplate.cpp>
+#include <autogen_converters.cpp>
 
 /* at some point I gotta figure out how to make readonly properties of pointer 
  * fields without this crap 
@@ -120,6 +121,26 @@ void boost_common()
 {
     if (boosted_common) return; 
     boosted_common = true;
+
+    to_python_converter<MatrixMap, MatrixMap_to_numpy_str>();
+    MatrixMap_from_numpy_str();
+
+    to_python_converter<d2d::SegmentMap, SegmentMap_to_numpy_str>();
+    SegmentMap_from_numpy_str();
+
+    to_python_converter<mxArray, mxArray_to_numpy_str>();
+    mxArray_from_numpy_str();
+
+    to_python_converter<f2d::Pixel2DData, Pixel2DData_to_numpy_str>();
+    Pixel2DData_from_numpy_str();
+
+    to_python_converter<LRgbImage, LRgbImage_to_numpy_str>();
+    LRgbImage_from_numpy_str();
+
+    to_python_converter<vector<double>, vec_to_numpy_str>();
+    vec_from_numpy_str();
+
+    register_autogen_converters();
 
     class_<vector<double> >("double_vec")
         .def(vector_indexing_suite<vector<double> >())

@@ -19,6 +19,7 @@
 #include <pclassifier/boosted_maxent.h>
 
 #include "voc_felz_features.h"
+#include <imarr.h>
 
 using namespace im;
 using namespace ml;
@@ -740,4 +741,5 @@ double kittilabel_iu_pct(kittilabel a, kittilabel b)
     
     return ret;
 }
+
 
