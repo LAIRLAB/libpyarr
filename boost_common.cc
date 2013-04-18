@@ -2,17 +2,6 @@
 #include <boilerplate.cpp>
 #include <autogen_converters.cpp>
 
-/* at some point I gotta figure out how to make readonly properties of pointer 
- * fields without this crap 
- */
-VRandomForest::VTreeNode* VTreeNode__get_left(VRandomForest::VTreeNode* inst)
-{
-    return inst->left;
-}
-VRandomForest::VTreeNode* VTreeNode__get_right(VRandomForest::VTreeNode* inst)
-{
-    return inst->right;
-}
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
                                 PyObject* X_train, 
                                 PyObject* Y_train)
@@ -39,15 +28,6 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
       double total_prob = 0.0;
       for (int j=0; j<yao->dimensions[1]; j++) {
           total_prob += (*tmp)[j];
-      }
-      if (total_prob >= 1.001) {
-          printf("OH NO!!! total_prob = %f, tmp[0] = %f, tmp[1] = %f, i=%d\n", 
-                 total_prob, (*tmp)[0], (*tmp)[1], i);
-          printf("actual data at (%d,%d) and (%d,%d) was %f and %f, absolute coords %zu and %zu\n", 
-                 i,0, i,1, ((double*)yao->data)[i*yao->dimensions[1] + 0], 
-                 ((double*)yao->data)[i*yao->dimensions[1] + 1], 
-                 i*yao->dimensions[1], i*yao->dimensions[1] + 1);
-          return true;
       }
       Yvec.push_back(const_cast<const vector<double>*>(tmp));
     }
@@ -87,6 +67,19 @@ vector<VRandomForest*> VBoostedMaxEnt__get_vec_vrandomforest(VBoostedMaxEnt* ins
   }
   return ret;
 }
+/* at some point I gotta figure out how to make readonly properties of pointer 
+ * fields without this crap 
+ */
+VRandomForest::VTreeNode* VTreeNode__get_left(VRandomForest::VTreeNode* inst)
+{
+    return inst->left;
+}
+VRandomForest::VTreeNode* VTreeNode__get_right(VRandomForest::VTreeNode* inst)
+{
+    return inst->right;
+}
+
+
 void VTreeNode__refill_avg_outputs(VRandomForest::VTreeNode *inst) 
 {
     if (inst->avg_output.size() > 0) 
@@ -100,6 +93,40 @@ void VTreeNode__refill_avg_outputs(VRandomForest::VTreeNode *inst)
     for (int i=0; i<inst->left->avg_output.size(); i++) {
         inst->avg_output.push_back((inst->left->avg_output[i] +
                                     inst->right->avg_output[i]) / 2.0);
+    }
+}
+
+void VRandomForest__wrap_doTrain(VRandomForest *inst, 
+                                 PyObject *_X, 
+                                 PyObject *_Y)
+{
+    PyArrayObject *X = (PyArrayObject*)_X;
+    PyArrayObject *Y = (PyArrayObject*)_Y;
+
+    if (!(numpy_satisfy_properties(X, 2, NULL, NPY_FLOAT64, true) &&
+          numpy_satisfy_properties(Y, 2, NULL, NPY_FLOAT64, true)))
+        return;
+    
+    vector<const vector<double>*> Xv, Yv;
+    for (int i=0; i<X->dimensions[0]; i++) {
+        vector<double>* Xtmp = new vector<double>(X->dimensions[1]);
+        vector<double>* Ytmp = new vector<double>(Y->dimensions[1]);
+        for (int j=0; j<X->dimensions[1]; j++) {
+            (*Xtmp)[j] = ((double*)X->data)[i*X->dimensions[1] + j];
+        }
+        for (int j=0; j<Y->dimensions[1]; j++) {
+            (*Ytmp)[j] = ((double*)Y->data)[i*Y->dimensions[1] + j];
+        }
+        Xv.push_back(const_cast<const vector<double>*>(Xtmp));
+        Yv.push_back(const_cast<const vector<double>*>(Ytmp));
+    }
+    vector<double> weights(X->dimensions[0], 1.0), feature_costs;
+    vector<size_t> usable_features, required_features;
+    
+    inst->doTrain(Xv, Yv, weights, usable_features, feature_costs, required_features);
+    for (int i=0; i<X->dimensions[0]; i++) {
+        delete Xv[i];
+        delete Yv[i];
     }
 }
 
@@ -119,6 +146,7 @@ static bool boosted_common = false;
 
 void boost_common() 
 {
+    import_array();
     if (boosted_common) return; 
     boosted_common = true;
 
@@ -185,6 +213,7 @@ void boost_ml()
         .def("get_left", VTreeNode__get_left, return_value_policy<reference_existing_object>())
         .def("get_right", VTreeNode__get_right, return_value_policy<reference_existing_object>())
         .def("refill_avg_outputs", VTreeNode__refill_avg_outputs)
+
         .def_readonly("thresh", &VRandomForest::VTreeNode::thresh)
         ;
 
@@ -200,6 +229,7 @@ void boost_ml()
         .def_readwrite("m_rdm_sample_percent", &VRandomForest::m_rdm_sample_percent)
         .def_readwrite("m_seeds", &VRandomForest::m_seeds)
         .def_readwrite("m_trees", &VRandomForest::m_trees)
+        .def("doTrain", VRandomForest__wrap_doTrain)
         ;
     class_<vector<VRandomForest*> >("VRandomForest_vec")
         .def(vector_indexing_suite<vector<VRandomForest*> >())
