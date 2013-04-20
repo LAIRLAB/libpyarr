@@ -19,7 +19,7 @@
 #include <pclassifier/boosted_maxent.h>
 
 #include "voc_felz_features.h"
-#include <imarr.h>
+#include <pyarr.h>
 
 using namespace im;
 using namespace ml;
@@ -669,28 +669,17 @@ PyObject* vec_to_numpy(vector<double> v)
     return (PyObject*)ao;
 }
 
-PyArrayObject *extract_featbox(PyArrayObject *feat_arr, 
-                             int i, int j,
-                             int win_h, int win_w)
+pyarr<double> extract_featbox(pyarr<double> feat_arr, 
+                              int i, int j,
+                              int win_h, int win_w)
 {
-    PyArrayObject *featbox;
-    int feat_depth = feat_arr->dimensions[2];
-
-    npy_intp dims[] = {1, win_h*win_w*feat_depth};
-#pragma omp critical 
-    {
-        featbox = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_FLOAT64);
-    }
+    int feat_depth = feat_arr.dims[2];
+    pyarr<double> featbox(vector<long int>(win_h*win_w*feat_depth));
 
     for (int k=0; k<win_h; k++) {
         for (int l=0; l<win_w; l++) {
             for (int m=0; m<feat_depth; m++) {
-                ((double*)featbox->data)[k*win_w*feat_depth + 
-                                         l*feat_depth + 
-                                         m] =                           \
-                    ((double*)feat_arr->data)[(i+k)*feat_arr->dimensions[1]*feat_depth + 
-                                              (j+l)*feat_depth + 
-                                              m];
+                featbox[ind(k,l,m)] = feat_arr[ind(i+k, j+l, m)];
             }
         }
     }

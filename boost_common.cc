@@ -220,7 +220,7 @@ void boost_ml()
     class_<vector<VRandomForest::VTreeNode> >("VTreeNode_vec")
         .def(vector_indexing_suite<vector<VRandomForest::VTreeNode> >())
         ;
-
+    printf("boosting random forest!\n");
     class_<VRandomForest>("VRandomForest", init<int, int, int, double, double>())
         .def_readwrite("m_nbr_trees", &VRandomForest::m_nbr_trees)
         .def_readwrite("m_max_depth", &VRandomForest::m_max_depth)

@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+from common.util.pdbwrap import *
+
 global cls_reg
 cls_reg = {}
 
@@ -88,48 +90,66 @@ class cls_decl(object):
 
         return ret
 
-def vec_decl(python_name, cpp_name=None):
-    if python_name not in cls_reg:
-        cpp_name = 'vector<' + (python_name if cpp_name is None else cpp_name) + ' >'
-    else:
-        cls_obj = cls_reg[python_name]
-        cpp_name = 'vector<' + cls_obj.cpp_name + ' >'
-    ret = 'class_<' + cpp_name + ' >("' + python_name + '_vec", init<>())\n'
-    ret += '.def(vector_indexing_suite<' + cpp_name + ' >())\n'
-    ret += '.def("clear", &' + cpp_name + '::clear)\n'
-    ret += ';\n\n'
+def sanitize(cpp_type):
+    return cpp_type.replace(' ', '_').replace('>', '_').replace('<','_')
 
-    vec_obj = cls_decl(cpp_name, ['clear'], [])
-    vec_obj.is_vec = True
-    cls_reg[python_name + '_vec'] = vec_obj
-
-    return ret
-
-
-class imarr_converter(object):
-    def __init__(self, cpp_type, npy_type, rgb=False):
-        self.rgb = rgb
-        if rgb:
-            self.cpp_type = 'rgbt<'+cpp_type+' > '
+class vec_decl(object):
+    def __init__(self, python_name, cpp_name=None):
+        self.python_name = python_name
+        if self.python_name not in cls_reg:
+            self.cpp_name = 'vector<' + (self.python_name if cpp_name is None else cpp_name) + ' >'
+            self.cls_obj = Struct(cpp_name = (self.python_name if cpp_name is None else cpp_name))
         else:
-            self.cpp_type = cpp_type
-
-        self.full_type = "imarr<%s>"%self.cpp_type
-        self.sanitized_cpp_type = self.cpp_type.replace(' ', '_').replace('>', '_').replace('<','_')
-        self.npy_type = npy_type
-
-    def gen_reg(self):
-        return """    to_python_converter<%s, imarr_%s_to_numpy_str>();
-    imarr_%s_from_numpy_str();
-"""%(self.full_type, self.sanitized_cpp_type, self.sanitized_cpp_type)
+            self.cls_obj = cls_reg[self.python_name]
+            self.cpp_name = 'vector<' + self.cls_obj.cpp_name + ' >'
 
     def gen(self):
-        ret = 'struct imarr_%s_from_numpy_str {\n'%self.sanitized_cpp_type
+        ret = self.cls_obj.cpp_name + ' ' + sanitize(self.cpp_name) + '__at('
+        ret += self.cpp_name + ' *inst, int n) {\n'
+        ret += 'return (*inst)[n];\n}\n\n'
+        return ret;
+
+    def gen_reg(self):
+        ret = 'class_<' + self.cpp_name + ' >("' + self.python_name + '_vec", init<>())\n'
+        ret += '.def(vector_indexing_suite<' + self.cpp_name + ' >())\n'
+        ret += '.def("clear", &' + self.cpp_name + '::clear)\n'
+        ret += '.def("at", ' + sanitize(self.cpp_name) + '__at)'
+        ret += ';\n\n'
+        
+        vec_obj = cls_decl(self.cpp_name, ['clear'], [])
+        vec_obj.is_vec = True
+        cls_reg[self.python_name + '_vec'] = vec_obj
+        
+        return ret
+
+
+class pyarr_converter(object):
+    def __init__(self, cpp_type, npy_type, rgb=False):
+        self.cpp_type = cpp_type
+
+        self.full_type = "pyarr<%s>"%self.cpp_type
+        self.sanitized_cpp_type = sanitize(self.cpp_type)
+        self.sanitized_full_type = sanitize(self.full_type)
+        self.npy_type = npy_type
+
+        self.vec = vec_decl(self.sanitized_full_type, self.full_type)
+
+    def gen_reg(self):
+        ret = """    to_python_converter<%s, pyarr_%s_to_numpy_str>();
+    pyarr_%s_from_numpy_str();
+"""%(self.full_type, self.sanitized_cpp_type, self.sanitized_cpp_type)
+        
+        ret += self.vec.gen_reg()
+        return ret
+    
+
+    def gen(self):
+        ret = 'struct pyarr_%s_from_numpy_str {\n'%self.sanitized_cpp_type
         ret += """    static void* convertible(PyObject *o)
         {
             PyArrayObject *ao = (PyArrayObject*)o; 
 
-            if (!numpy_satisfy_properties(ao, """+`(3 if self.rgb else 2)`+""", NULL, %s, true))
+            if (!numpy_satisfy_properties(ao, -1, NULL, %s, true))
                 return 0;
 
             return (void*)o;
@@ -143,19 +163,14 @@ class imarr_converter(object):
             void* storage = ((converter::rvalue_from_python_storage<%s >*)data)->storage.bytes;
             PyArrayObject *ao = (PyArrayObject*)o;        
 
-            new (storage) %s();
+            new (storage) %s(ao);
             %s* m = (%s*)storage;
 
             data->convertible = storage; 
-
-            m->h = ao->dimensions[0];
-            m->w = ao->dimensions[1];
-            m->owndata = false;
-            m->data = (%s*)ao->data;
         }
-    """%(self.full_type, self.full_type, self.full_type, self.full_type, self.cpp_type)
+    """%(self.full_type, self.full_type, self.full_type, self.full_type)
 
-        ret += """    imarr_%s_from_numpy_str() 
+        ret += """    pyarr_%s_from_numpy_str() 
         {
             converter::registry::push_back(&convertible, 
                                            &construct, 
@@ -164,15 +179,21 @@ class imarr_converter(object):
     };
     """%(self.sanitized_cpp_type, self.full_type)
 
-        ret += """struct imarr_%s_to_numpy_str {
+        ret += """struct pyarr_%s_to_numpy_str {
 """%self.sanitized_cpp_type
 
         ret += """static PyObject *convert(const %s &m) {
 """%self.full_type
 
-        ret += """npy_intp dims[] = {m.h, m.w};
-    return PyArray_SimpleNewFromData(2, dims, %s, (void*)m.data);
+        ret += """
+#pragma omp critical
+{
+Py_INCREF(m.ao);
 }
-};"""%self.npy_type
+    return (PyObject*)m.ao;
+}
+};"""
+
+        ret += self.vec.gen()
   
         return ret

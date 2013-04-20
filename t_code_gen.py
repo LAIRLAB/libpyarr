@@ -66,14 +66,3 @@ print vec_decl('tDetection')
 print vec_decl('tGroundtruth_vec')
 print vec_decl('tDetection_vec')
 
-convs = [imarr_converter('int', 'NPY_INT32'),
-         imarr_converter('unsigned int', 'NPY_UINT32'),
-         imarr_converter('double', 'NPY_FLOAT64'),
-         imarr_converter('float', 'NPY_FLOAT32'),
-         imarr_converter('unsigned char', 'NPY_UINT8')]
-
-for c in convs:
-    print c.gen()
-print 
-for c in convs:
-    print c.gen_reg()
