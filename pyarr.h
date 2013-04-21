@@ -2,6 +2,14 @@
 #define _IMARR_H
 
 #include <cstdio>
+#include <typeinfo>
+#include <Python.h>
+#include <string>
+#include <vector>
+#include <numpy/arrayobject.h>
+
+using std::vector;
+using std::string;
 
 class ind {
  public:
@@ -54,27 +62,29 @@ class rgbt {
 
 template<class T>
 int lookup_npy_type(T v) {
-    if (!strcmp(typeid(v).name(), "int")) {
+    string s = typeid(v).name();
+    if (s == "i") {
         return NPY_INT32;
     } 
-    if (!strcmp(typeid(v).name(), "float")) {
+    if (s == "f") {
         return NPY_FLOAT32;
     }  
-    if (!strcmp(typeid(v).name(), "d")) {
+    if (s == "d") {
         return NPY_FLOAT64;
     }  
-    if (!strcmp(typeid(v).name(), "unsigned char")) {
+    if (s == "h") {
         return NPY_UINT8;
     }  
-    if (!strcmp(typeid(v).name(), "char")) {
+    if (s == "c") {
         return NPY_INT8;
     }  
-    if (!strcmp(typeid(v).name(), "long int")) {
+    if (s == "l") {
         return NPY_INT64;
     }  
-    if (!strcmp(typeid(v).name(), "unsigned int")) {
+    if (s == "j") {
         return NPY_UINT32;
     }  
+    printf("oh no unknown typeid %s\n", s.c_str());
     return NPY_FLOAT64;
 }
 
@@ -85,16 +95,17 @@ class pyarr {
     T* data;
     vector<long int> dims;
 
-    pyarr() {//printf("pyarr blank constructor\n");
+    pyarr() {printf("pyarr blank constructor\n");
         ao = NULL;}
     pyarr(PyArrayObject *_ao)
         : ao(_ao) {
-        //printf("pyarr from-python constructor\n");
+        printf("pyarr from-python constructor\n");
 #pragma omp critical 
         {
             Py_INCREF(ao);
         }
         data = (T*)ao->data;
+        dims.clear();
         for (int i=0; i<ao->nd; i++) {
             dims.push_back(ao->dimensions[i]);
         }
@@ -102,18 +113,20 @@ class pyarr {
 
     void do_constructor(int nd, long int* _dims) {
         //printf("pyarr main constructor\n");
-        for (int i=0; i<nd; i++) {
-            dims.push_back(_dims[i]);
-        }
-
-        T dummy;
 #pragma omp critical 
         {
-            ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
-                                                   _dims, 
+        dims.clear();
+        for (int i=0; i<nd; i++) {
+        dims.push_back(_dims[i]);
+    }
+        
+        T dummy;
+        
+        ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
+            _dims, 
                                                    lookup_npy_type<T>(dummy));
-        }
         data = (T*)ao->data;
+    }
     }
 
     pyarr(int nd, long int* _dims) {
@@ -124,13 +137,27 @@ class pyarr {
         do_constructor(_dims.size(), &_dims[0]);
     }
 
-    pyarr(const pyarr& o) 
-        : ao(o.ao), dims(o.dims), data(o.data) {
-        //printf("pyarr copy constructor\n");
+    pyarr(const pyarr<T>& o) {
+
 #pragma omp critical 
         {
+        //printf("pyarr copy constructor\n");
+        ao = o.ao;
+        dims = o.dims;
+        data = o.data;
             Py_INCREF(ao);
         }
+    }
+    pyarr& operator=(const pyarr& o) {
+#pragma omp critical
+        {
+        //printf("pyarr operator=\n");
+        Py_INCREF(ao);
+
+        ao = o.ao;
+        dims = o.dims;
+        data = o.data;
+    }
     }
         
     ~pyarr() {

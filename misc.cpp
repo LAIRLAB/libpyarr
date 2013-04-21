@@ -23,6 +23,9 @@ double find_frac(double fs, double ratio,
 void resize_bilinear(double *src, int sh, int sw, 
 		     double *dst, int dh, int dw, int depth) 
 {
+    printf("resize called with sizes %d %d %d %d %d\n",
+           sh, sw, dh, dw, depth);
+
     double fsi = 0.0;
     double fsj = 0.0;
     double fsh = (double)sh;
@@ -33,7 +36,7 @@ void resize_bilinear(double *src, int sh, int sw,
     double hratio = fsh/fdh;
     double wratio = fsw/fdw;
 
-    memset((void*)dst, 0, dh*dw*sizeof(double));
+    memset((void*)dst, 0, dh*dw*depth*sizeof(double));
 
     for (int si=0; si<sh; si++) {
         fsi = double(si);

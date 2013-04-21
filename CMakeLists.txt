@@ -26,6 +26,7 @@ add_library(obwrap
             OB_CPP_release/resize.cc 
             OB_CPP_release/detect.cpp)
 
+
 set_target_properties(obwrap PROPERTIES SUFFIX ".so")
 target_link_libraries(obwrap 
                       ${Boost_LIBRARIES}
