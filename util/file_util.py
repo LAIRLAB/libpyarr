@@ -6,6 +6,9 @@ import detector_core.ta2_globals as ta2_globals
 import Image, numpy
 import img_util
 
+def path_relative_to_file(file_path, path):
+    return os.path.abspath(os.path.dirname(file_path) + '/' + path)
+
 def basename_split(bname):
     return bname.strip('/').split('/')[-1].split('.')[0]
 

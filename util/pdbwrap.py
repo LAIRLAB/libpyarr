@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
 import traceback, pdb, sys, hotshot
-import no_package.himmailer as hm
-
 global profdict
 
 profdict = {}
@@ -42,7 +40,9 @@ def pdbwrap(f):
     return fdebug
 
 def pdbwrap_email(f, subject, recipients):
-    '''A utility for dropping out to a debugger on exceptions.'''
+    '''A utility for dropping out to a debugger and emailing on exceptions.'''
+
+    import no_package.himmailer as hm
     def fdebug(*a, **kw):
         try:
             return f(*a, **kw)

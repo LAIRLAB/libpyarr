@@ -1,7 +1,7 @@
 #usage: used to print colors terminals that support ANSI escape sequences
 import sys, os
 try:
-    from libhim_python_bare import set_logger_verbosity
+    from libboost_common import set_logger_verbosity
 except ImportError:
     pass
 
