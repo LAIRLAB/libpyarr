@@ -99,8 +99,8 @@ class pyarr {
         ao = NULL;}
     pyarr(PyArrayObject *_ao)
         : ao(_ao) {
-        printf("pyarr from-python constructor\n");
-#pragma omp critical 
+        //printf("pyarr from-python constructor\n");
+#pragma omp critical (_pyarr) 
         {
             Py_INCREF(ao);
         }
@@ -112,19 +112,33 @@ class pyarr {
     }
 
     void do_constructor(int nd, long int* _dims) {
+#pragma omp critical (_pyarr) 
+      {
         //printf("pyarr main constructor\n");
-#pragma omp critical 
-        {
+	//printf("making pyarr of nd %d\n", nd);
+	if (nd > 4) {
+	  printf("OH FUCK ND KINDA BIG %d\n", nd);
+	}
         dims.clear();
         for (int i=0; i<nd; i++) {
-        dims.push_back(_dims[i]);
-    }
+	  dims.push_back(_dims[i]);
+	}
+	//printf("dims.size() is now %lu\n", dims.size());
+	//printf("dims[0] is %ld\n", dims[0]);
         
         T dummy;
         
         ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
-            _dims, 
-                                                   lookup_npy_type<T>(dummy));
+					       _dims, 
+					       lookup_npy_type<T>(dummy));
+	if (ao == NULL) {
+	  printf("OH FUCK AO IS NULL ON ARGS %lu, ", dims.size());
+	  for (int i=0; i<dims.size(); i++) {
+	    printf("%d, ", _dims[i]);
+	  }
+	  printf("and npy type %d", lookup_npy_type<T>(dummy));
+	}
+		 
         data = (T*)ao->data;
     }
     }
@@ -138,8 +152,7 @@ class pyarr {
     }
 
     pyarr(const pyarr<T>& o) {
-
-#pragma omp critical 
+#pragma omp critical (_pyarr) 
         {
         //printf("pyarr copy constructor\n");
         ao = o.ao;
@@ -148,8 +161,8 @@ class pyarr {
             Py_INCREF(ao);
         }
     }
-    pyarr& operator=(const pyarr& o) {
-#pragma omp critical
+    pyarr& operator=(const pyarr<T>& o) {
+#pragma omp critical (_pyarr)
         {
         //printf("pyarr operator=\n");
         if (ao != NULL) 
@@ -165,7 +178,7 @@ class pyarr {
         
     ~pyarr() {
         //printf("pyarr destructor\n");
-#pragma omp critical 
+#pragma omp critical (_pyarr) 
         {
             Py_DECREF(ao);
         }
@@ -186,6 +199,11 @@ class pyarr {
 
     long int actual_idx(ind idx) {
         long int final_idx = 0;
+        if (idx.nd > dims.size()) {
+            printf("indexing into low-dim (%d) array with high-dim index (%d) not supported\n",
+                   dims.size(), idx.nd);
+            return 0;
+        }
         for (int d=0; d<idx.nd; d++) {
             long int this_idx = idx.inds[d];
             for (int e=d+1; e<idx.nd; e++) {

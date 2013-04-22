@@ -674,7 +674,8 @@ pyarr<double> extract_featbox(pyarr<double> feat_arr,
                               int win_h, int win_w)
 {
     int feat_depth = feat_arr.dims[2];
-    pyarr<double> featbox(vector<long int>(win_h*win_w*feat_depth));
+    long int argh[] = {win_h, win_w, feat_depth};
+    pyarr<double> featbox(3, argh);
 
     for (int k=0; k<win_h; k++) {
         for (int l=0; l<win_w; l++) {
