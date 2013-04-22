@@ -152,11 +152,14 @@ class pyarr {
 #pragma omp critical
         {
         //printf("pyarr operator=\n");
-        Py_INCREF(ao);
+        if (ao != NULL) 
+            Py_DECREF(ao);
 
         ao = o.ao;
         dims = o.dims;
         data = o.data;
+
+        Py_INCREF(ao);
     }
     }
         
