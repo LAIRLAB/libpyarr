@@ -25,12 +25,13 @@ void register_autogen_converters() {
         s += c.gen_reg()
 
     s += "}"
-    
-    olds = open(target_file).read()
-    if s == olds:
-        return
-    else:
-        print 'regenerating',target_file
-        f = open(target_file, 'w')
-        f.write(s)
-        f.close()
+
+    if os.path.isfile(target_file):
+        olds = open(target_file).read()
+        if s == olds:
+            return
+
+    print 'regenerating',target_file
+    f = open(target_file, 'w')
+    f.write(s)
+    f.close()

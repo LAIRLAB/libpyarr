@@ -113,36 +113,36 @@ class pyarr {
 
     void do_constructor(int nd, long int* _dims) {
 #pragma omp critical (_pyarr) 
-      {
-        //printf("pyarr main constructor\n");
-	//printf("making pyarr of nd %d\n", nd);
-	if (nd > 4) {
-	  printf("OH FUCK ND KINDA BIG %d\n", nd);
-	}
-        dims.clear();
-        for (int i=0; i<nd; i++) {
-	  dims.push_back(_dims[i]);
-	}
-	//printf("dims.size() is now %lu\n", dims.size());
-	//printf("dims[0] is %ld\n", dims[0]);
-        
-        T dummy;
-        
-        ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
-					       _dims, 
-					       lookup_npy_type<T>(dummy));
-	if (ao == NULL) {
-	  printf("OH FUCK AO IS NULL ON ARGS %lu, ", dims.size());
-	  for (int i=0; i<dims.size(); i++) {
-	    printf("%d, ", _dims[i]);
-	  }
-	  printf("and npy type %d", lookup_npy_type<T>(dummy));
-	}
-		 
-        data = (T*)ao->data;
+        {
+            //printf("pyarr main constructor\n");
+            //printf("making pyarr of nd %d\n", nd);
+            if (nd > 4) {
+                printf("OH FUCK ND KINDA BIG %d\n", nd);
+            }
+            dims.clear();
+            for (int i=0; i<nd; i++) {
+                dims.push_back(_dims[i]);
+            }
+            //printf("dims.size() is now %lu\n", dims.size());
+            //printf("dims[0] is %ld\n", dims[0]);
+            
+            T dummy;
+            
+            ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
+                                                   _dims, 
+                                                   lookup_npy_type<T>(dummy));
+            if (ao == NULL) {
+                printf("OH FUCK AO IS NULL ON ARGS %lu, ", dims.size());
+                for (int i=0; i<dims.size(); i++) {
+                    printf("%ld, ", _dims[i]);
+                }
+                printf("and npy type %d", lookup_npy_type<T>(dummy));
+            }
+            
+            data = (T*)ao->data;
+        }
     }
-    }
-
+    
     pyarr(int nd, long int* _dims) {
         do_constructor(nd, _dims);
     }
@@ -200,7 +200,7 @@ class pyarr {
     long int actual_idx(ind idx) {
         long int final_idx = 0;
         if (idx.nd > dims.size()) {
-            printf("indexing into low-dim (%d) array with high-dim index (%d) not supported\n",
+            printf("indexing into low-dim (%lu) array with high-dim index (%d) not supported\n",
                    dims.size(), idx.nd);
             return 0;
         }
