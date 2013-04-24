@@ -722,9 +722,13 @@ double kittilabel_iu_pct(kittilabel a, kittilabel b)
 
     double a_area = (a.x2 - a.x1)*(a.y2 - a.y1);
     double b_area = (b.x2 - b.x1)*(b.y2 - b.y1);
+
+    double xlo = max(a.x1, b.x1);
+    double ylo = max(a.y1, b.y1);
+    double xhi = min(a.x2, b.x2);
+    double yhi = min(a.y2, b.y2);
     
-    double int_area = (min(a.x2 - b.x1, b.x2 - a.x1) *
-                       min(a.y2 - b.y1, b.y2 - a.y1));
+    double int_area = (xhi - xlo)*(yhi - ylo);
 
     double union_area = a_area + b_area - int_area;
     double ret = int_area / union_area;
