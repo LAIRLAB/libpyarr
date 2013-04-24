@@ -42,7 +42,7 @@ def pdbwrap(f):
 def pdbwrap_email(f, subject, recipients):
     '''A utility for dropping out to a debugger and emailing on exceptions.'''
 
-    import no_package.himmailer as hm
+    import common.util.himmailer as hm
     def fdebug(*a, **kw):
         try:
             return f(*a, **kw)
