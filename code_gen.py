@@ -153,7 +153,7 @@ class vec_decl(object):
 
         o = gensym()
         ret += 'void ' + sanitize(self.cpp_name) + '__set('
-        ret += self.cpp_name + ' *inst, int ' + n + ', ' 
+        ret += self.cpp_name + ' *' + inst + ', int ' + n + ', ' 
         ret += self.cls_obj.cpp_name + ' ' + o + ') {\n'
 
         ret += '(*' + inst + ')[' + n + '] = ' + o + ';\n}\n\n'
