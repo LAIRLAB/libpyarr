@@ -688,52 +688,5 @@ pyarr<double> extract_featbox(pyarr<double> feat_arr,
     return featbox;
 }
 
-class kittilabel {
-public:
-    bool operator==(const kittilabel &o) {
-        return (type == o.type &&
-                truncation == o.truncation &&
-                occlusion == o.occlusion &&
-                alpha == o.alpha &&
-                confidence == o.confidence &&
-                x1 == o.x1 &&
-                y1 == o.y1 &&
-                x2 == o.x2 &&
-                y2 == o.y2);
-    }
-    string type;
-    double truncation; /* truncated pixel ratio? */
-    int occlusion; /* 0 = visible, 1 = partly occluded, 2 = fully occluded, 3 = unknown */
-    double alpha; /* object observation angle */
-
-    double confidence;
-
-    double x1, y1, x2, y2;
-};
-
-
-double kittilabel_iu_pct(kittilabel a, kittilabel b) 
-{
-    if (a.x2 <= b.x1 ||
-        a.y2 <= b.y1 ||
-        b.x2 <= a.x1 ||
-        b.y2 <= a.y1) 
-        return 0.0;
-
-    double a_area = (a.x2 - a.x1)*(a.y2 - a.y1);
-    double b_area = (b.x2 - b.x1)*(b.y2 - b.y1);
-
-    double xlo = max(a.x1, b.x1);
-    double ylo = max(a.y1, b.y1);
-    double xhi = min(a.x2, b.x2);
-    double yhi = min(a.y2, b.y2);
-    
-    double int_area = (xhi - xlo)*(yhi - ylo);
-
-    double union_area = a_area + b_area - int_area;
-    double ret = int_area / union_area;
-    
-    return ret;
-}
 
 

@@ -97,37 +97,47 @@ void VTreeNode__refill_avg_outputs(VRandomForest::VTreeNode *inst)
 }
 
 void VRandomForest__wrap_doTrain(VRandomForest *inst, 
-                                 PyObject *_X, 
-                                 PyObject *_Y)
+                                 pyarr<double> X, 
+                                 pyarr<double> Y)
 {
-    PyArrayObject *X = (PyArrayObject*)_X;
-    PyArrayObject *Y = (PyArrayObject*)_Y;
-
-    if (!(numpy_satisfy_properties(X, 2, NULL, NPY_FLOAT64, true) &&
-          numpy_satisfy_properties(Y, 2, NULL, NPY_FLOAT64, true)))
-        return;
-    
     vector<const vector<double>*> Xv, Yv;
-    for (int i=0; i<X->dimensions[0]; i++) {
-        vector<double>* Xtmp = new vector<double>(X->dimensions[1]);
-        vector<double>* Ytmp = new vector<double>(Y->dimensions[1]);
-        for (int j=0; j<X->dimensions[1]; j++) {
-            (*Xtmp)[j] = ((double*)X->data)[i*X->dimensions[1] + j];
+    for (int i=0; i<X.dims[0]; i++) {
+        vector<double>* Xtmp = new vector<double>(X.dims[1]);
+        vector<double>* Ytmp = new vector<double>(Y.dims[1]);
+        for (int j=0; j<X.dims[1]; j++) {
+            (*Xtmp)[j] = X[ind(i,j)];
         }
-        for (int j=0; j<Y->dimensions[1]; j++) {
-            (*Ytmp)[j] = ((double*)Y->data)[i*Y->dimensions[1] + j];
+        for (int j=0; j<Y.dims[1]; j++) {
+            (*Ytmp)[j] = Y[ind(i,j)];
         }
         Xv.push_back(const_cast<const vector<double>*>(Xtmp));
         Yv.push_back(const_cast<const vector<double>*>(Ytmp));
     }
-    vector<double> weights(X->dimensions[0], 1.0), feature_costs;
+    vector<double> weights(X.dims[0], 1.0), feature_costs;
     vector<size_t> usable_features, required_features;
     
     inst->doTrain(Xv, Yv, weights, usable_features, feature_costs, required_features);
-    for (int i=0; i<X->dimensions[0]; i++) {
+    for (int i=0; i<X.dims[0]; i++) {
         delete Xv[i];
         delete Yv[i];
     }
+}
+
+pyarr<double> VRandomForest__wrap_doPredict(VRandomForest *inst, 
+                                            pyarr<double> X)
+{
+    long int argh[] = {inst->getDimTarget()};
+    pyarr<double> ret(1, argh);
+    
+    vector<double> xv(X.dims[0]), yv(ret.dims[0]);
+    for (int i=0; i<X.dims[0]; i++) {
+        xv[i] = X[ind(i)];
+    }
+    inst->doPredict(xv, yv);
+    for (int i=0; i<ret.dims[0]; i++){
+        ret[ind(i)] = yv[i];
+    }
+    return ret;
 }
 
 void set_logger_verbosity(string verbosity)
@@ -189,21 +199,6 @@ void boost_common()
 
     register_autogen_converters();
 
-    class_<vector<double> >("double_vec")
-        .def(vector_indexing_suite<vector<double> >())
-        ;
-    class_<vector<unsigned int> >("uint_vec")
-        .def(vector_indexing_suite<vector<unsigned int> >())
-        ;
-    class_<vector<unsigned long> >("ulong_vec")
-        .def(vector_indexing_suite<vector<unsigned long> >())
-        ;
-    class_<vector<vector<double> > >("double_vec_vec")
-        .def(vector_indexing_suite<vector<vector<double> > >())
-        ;
-    class_<vector<vector<vector<double> > > >("double_vec_vec_vec")
-        .def(vector_indexing_suite<vector<vector<vector<double> > > >())
-        ;
     class_<std::pair<unsigned int, double> >("uint_double_pair")
         .def_readwrite("first", &std::pair<unsigned int, double>::first)
         .def_readwrite("second", &std::pair<unsigned int, double>::second)
@@ -249,6 +244,7 @@ void boost_ml()
         .def_readwrite("m_seeds", &VRandomForest::m_seeds)
         .def_readwrite("m_trees", &VRandomForest::m_trees)
         .def("doTrain", VRandomForest__wrap_doTrain)
+        .def("doPredict", VRandomForest__wrap_doPredict)
         ;
     class_<vector<VRandomForest*> >("VRandomForest_vec")
         .def(vector_indexing_suite<vector<VRandomForest*> >())

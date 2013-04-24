@@ -4,42 +4,76 @@ from common.util.pdbwrap import *
 
 global cls_reg
 cls_reg = {}
+global _gensym_ctr
+_gensym_ctr=0
+
+print "_gensym_ctr is",_gensym_ctr
+
+def gensym():
+    global _gensym_ctr
+    ret = '_G' + `_gensym_ctr`
+    _gensym_ctr += 1
+    return ret
 
 class cls_decl(object):
     def __init__(self, 
                  cpp_name, 
                  method_names, 
                  field_names, 
-                 init_args=[]):
+                 init_args=[],
+                 n_vecs=1):
         self.cpp_name = cpp_name
         self.method_names = method_names
-        self.field_names = field_names
+        self.field_names = [(f if not isinstance(f, list) else f[0]) for f in field_names]
+        self.field_types = [('double' if not isinstance(f, list) else f[1]) for f in field_names]
         self.init_args = init_args
 
         self.python_name = self.cpp_name.split(':')[-1].replace('<', '_').replace('>', '_')
 
         cls_reg[self.python_name] = self
+        self.n_vecs = n_vecs
+        self.vecs = []
+        if self.n_vecs > 0:
+            self.vecs.append(vec_decl(self.python_name, self.cpp_name))
 
+        for i in xrange(1, self.n_vecs):
+            self.vecs.append(vec_decl(self.vecs[-1].python_name, 
+                                      self.vecs[-1].cpp_name))
     def gen(self):
         ret = 'class ' + self.cpp_name + ' {\n'
         ret += 'public:\n'
-        for f in self.field_names:
-            if isinstance(f, list):
-                ret += f[1] + ' ' + f[0] + ';\n'
+        o = gensym()
+        ret += 'bool operator==(const %s &%s) {'%(self.cpp_name, o)
+        ret += 'return ( '
+        print 'in', self.cpp_name, 'field names are',self.field_names
+        for (i, f) in enumerate(self.field_names):
+            ret += f + ' == ' + o + '.' + f
+            if i < len(self.field_names)-1:
+                ret += ' &&\n '
             else:
-                ret += 'double ' + f + ';\n'
+                ret += ');\n}\n'
+            
+        for (t, f) in zip(self.field_types, self.field_names):
+            ret += t + ' ' + f + ';\n'
 
-        ret += self.cpp_name + '('
-        for (i,a) in enumerate(self.init_args):
-            ret += a + ' _' + i + ', '
+        ret += self.cpp_name + '() {}\n'
 
-        ret += ');\n'
+        if self.init_args is not None and len(self.init_args) > 0:
+            ret += self.cpp_name + '('
+            for (i,a) in enumerate(self.init_args):
+                ret += a + ' _' + i + ', '
+
+            ret += ');\n'
+
         ret += '};\n'
-        
+
+        for v in self.vecs:
+            ret += v.gen()
+
         return ret
 
 
-    def gen_boost(self):
+    def gen_reg(self):
         ret = 'class_<'
         ret += self.cpp_name
         ret += '>("{}",'.format(self.python_name)
@@ -88,6 +122,9 @@ class cls_decl(object):
                 ret += '.def_readwrite("{}", &{}::{})\n'.format(name, self.cpp_name, name)
         ret += ';\n'
 
+        for v in self.vecs:
+            ret += v.gen_reg()
+
         return ret
 
 def sanitize(cpp_type):
@@ -95,14 +132,17 @@ def sanitize(cpp_type):
 
 class vec_decl(object):
     def __init__(self, python_name, cpp_name=None):
-        self.python_name = python_name
-        if self.python_name not in cls_reg:
-            self.cpp_name = 'vector<' + (self.python_name if cpp_name is None else cpp_name) + ' >'
-            self.cls_obj = Struct(cpp_name = (self.python_name if cpp_name is None else cpp_name))
+        if python_name not in cls_reg:
+            self.cpp_name = 'vector<' + (python_name if cpp_name is None else cpp_name) + ' >'
+            self.cls_obj = Struct(cpp_name = (python_name if cpp_name is None else cpp_name), 
+                                  python_name = python_name)
         else:
-            self.cls_obj = cls_reg[self.python_name]
+            self.cls_obj = cls_reg[python_name]
             self.cpp_name = 'vector<' + self.cls_obj.cpp_name + ' >'
 
+        self.python_name = python_name + '_vec'
+        cls_reg[self.python_name] = self
+    
     def gen(self):
         ret = self.cls_obj.cpp_name + ' ' + sanitize(self.cpp_name) + '__at('
         ret += self.cpp_name + ' *inst, int n) {\n'
@@ -110,15 +150,11 @@ class vec_decl(object):
         return ret;
 
     def gen_reg(self):
-        ret = 'class_<' + self.cpp_name + ' >("' + self.python_name + '_vec", init<>())\n'
+        ret = 'class_<' + self.cpp_name + ' >("' + self.python_name + '", init<>())\n'
         ret += '.def(vector_indexing_suite<' + self.cpp_name + ' >())\n'
         ret += '.def("clear", &' + self.cpp_name + '::clear)\n'
         ret += '.def("at", ' + sanitize(self.cpp_name) + '__at)'
         ret += ';\n\n'
-        
-        vec_obj = cls_decl(self.cpp_name, ['clear'], [])
-        vec_obj.is_vec = True
-        cls_reg[self.python_name + '_vec'] = vec_obj
         
         return ret
 
