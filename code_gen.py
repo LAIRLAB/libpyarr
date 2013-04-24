@@ -145,8 +145,18 @@ class vec_decl(object):
     
     def gen(self):
         ret = self.cls_obj.cpp_name + ' ' + sanitize(self.cpp_name) + '__at('
-        ret += self.cpp_name + ' *inst, int n) {\n'
-        ret += 'return (*inst)[n];\n}\n\n'
+        inst = gensym()
+        n = gensym()
+        ret += self.cpp_name + ' *' + inst + ', int ' + n + ') {\n'
+        ret += 'return (*' + inst + ')[' + n + '];\n}\n\n'
+
+
+        o = gensym()
+        ret += 'void ' + sanitize(self.cpp_name) + '__set('
+        ret += self.cpp_name + ' *inst, int ' + n + ', ' 
+        ret += self.cls_obj.cpp_name + ' ' + o + ') {\n'
+
+        ret += '(*' + inst + ')[' + n + '] = ' + o + ';\n}\n\n'
         return ret;
 
     def gen_reg(self):
@@ -154,6 +164,7 @@ class vec_decl(object):
         ret += '.def(vector_indexing_suite<' + self.cpp_name + ' >())\n'
         ret += '.def("clear", &' + self.cpp_name + '::clear)\n'
         ret += '.def("at", ' + sanitize(self.cpp_name) + '__at)'
+        ret += '.def("set", ' + sanitize(self.cpp_name) + '__set)'
         ret += ';\n\n'
         
         return ret
