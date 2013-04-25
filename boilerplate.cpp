@@ -10,7 +10,7 @@
 #include <infer_machine/distribution_map.h>
 #include <infer_machine/hier_infer_machine.h>
 
-#include <dataset_2d/outdoor_2d.h>
+//#include <dataset_2d/outdoor_2d.h>
 #include <graph_segment/fh_segmenter.h>
 #include <region_generic/region_data.h>
 #include <region_2d/region_2d_level.h>
