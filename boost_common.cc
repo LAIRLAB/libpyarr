@@ -157,7 +157,7 @@ static bool boosted_common = false;
 void boost_common() 
 {
     import_array();
-    if (boosted_common) return; 
+    if (0 && boosted_common) return; 
     boosted_common = true;
 
     long int dims[] = {10, 10, 10};
@@ -221,7 +221,7 @@ static bool boosted_ml = false;
 
 void boost_ml() 
 {
-    if (boosted_ml) return; 
+    if (0 && boosted_ml) return; 
     boosted_ml = true;
 
     class_<VRandomForest::VTreeNode>("VTreeNode", init<>())
@@ -239,7 +239,7 @@ void boost_ml()
     class_<vector<VRandomForest::VTreeNode> >("VTreeNode_vec")
         .def(vector_indexing_suite<vector<VRandomForest::VTreeNode> >())
         ;
-    printf("boosting random forest!\n");
+
     class_<VRandomForest>("VRandomForest", init<int, int, int, double, double>())
         .def_readwrite("m_nbr_trees", &VRandomForest::m_nbr_trees)
         .def_readwrite("m_max_depth", &VRandomForest::m_max_depth)
@@ -248,6 +248,7 @@ void boost_ml()
         .def_readwrite("m_rdm_sample_percent", &VRandomForest::m_rdm_sample_percent)
         .def_readwrite("m_seeds", &VRandomForest::m_seeds)
         .def_readwrite("m_trees", &VRandomForest::m_trees)
+        .def("save", &VRandomForest::save)
         .def("doTrain", VRandomForest__wrap_doTrain)
         .def("doPredict", VRandomForest__wrap_doPredict)
         ;
