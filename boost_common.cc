@@ -210,6 +210,11 @@ void boost_common()
         .def(vector_indexing_suite<vector<vector<std::pair<unsigned int, double> > > >())
         ;
     def("set_logger_verbosity", set_logger_verbosity);
+
+    class_<vector<string> >("string_vector")
+	.def(vector_indexing_suite<vector<string > >() )
+	;
+    
 }
 
 static bool boosted_ml = false;
@@ -261,4 +266,11 @@ void boost_ml()
     class_<vector<VBoostedMaxEnt*> >("VBoostedMaxEnt_vec")
         .def(vector_indexing_suite<vector<VBoostedMaxEnt*> >())
         ;
+}
+
+BOOST_PYTHON_MODULE(libboost_common) {
+    PyEval_InitThreads();
+    import_array();
+    ilInit();
+    boost_common();
 }
