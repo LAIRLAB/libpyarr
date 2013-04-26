@@ -111,6 +111,7 @@ struct MatrixMap_from_numpy_str {
                 m->m_data[i][j] = ((int*)ao->data)[i*ao->dimensions[1] + j];
             }
         }
+	m->calcExtrema();
     }
 
     MatrixMap_from_numpy_str() 
