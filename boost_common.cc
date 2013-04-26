@@ -157,8 +157,9 @@ static bool boosted_common = false;
 void boost_common() 
 {
     import_array();
-    if (0 && boosted_common) return; 
+    if (boosted_common) return; 
     boosted_common = true;
+    
 
     long int dims[] = {10, 10, 10};
     pyarr<double> d(3, dims);
