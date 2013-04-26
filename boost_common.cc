@@ -96,7 +96,7 @@ void VTreeNode__refill_avg_outputs(VRandomForest::VTreeNode *inst)
     }
 }
 
-void VRandomForest__wrap_doTrain(VRandomForest *inst, 
+void VRandomForest__wrap_train(VRandomForest *inst, 
                                  pyarr<double> X, 
                                  pyarr<double> Y)
 {
@@ -116,7 +116,8 @@ void VRandomForest__wrap_doTrain(VRandomForest *inst,
     vector<double> weights(X.dims[0], 1.0), feature_costs;
     vector<size_t> usable_features, required_features;
     
-    inst->doTrain(Xv, Yv, weights, usable_features, feature_costs, required_features);
+    inst->train(X.dims[1], Y.dims[1], 
+                Xv, Yv, weights, usable_features, feature_costs, required_features);
     for (int i=0; i<X.dims[0]; i++) {
         delete Xv[i];
         delete Yv[i];
@@ -249,7 +250,7 @@ void boost_ml()
         .def_readwrite("m_seeds", &VRandomForest::m_seeds)
         .def_readwrite("m_trees", &VRandomForest::m_trees)
         .def("save", &VRandomForest::save)
-        .def("doTrain", VRandomForest__wrap_doTrain)
+        .def("train", VRandomForest__wrap_train)
         .def("doPredict", VRandomForest__wrap_doPredict)
         ;
     class_<vector<VRandomForest*> >("VRandomForest_vec")
