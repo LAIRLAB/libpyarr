@@ -250,6 +250,7 @@ void boost_ml()
         .def_readwrite("m_seeds", &VRandomForest::m_seeds)
         .def_readwrite("m_trees", &VRandomForest::m_trees)
         .def("save", &VRandomForest::save)
+        .def("load", &VRandomForest::load)
         .def("train", VRandomForest__wrap_train)
         .def("doPredict", VRandomForest__wrap_doPredict)
         ;
