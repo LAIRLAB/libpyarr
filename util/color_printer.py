@@ -139,7 +139,6 @@ class ColorPrinter(object):
 
 
         #only leave open while writing, allows multiple instances to write to same file
-        print "logging to: {}".format(self.logfile_fn)
         if self.logfile_fn is not None:
             with open(self.logfile_fn, 'a') as f:
                 f.write('[{}] {}\n'.format(log_type, s))
@@ -149,7 +148,7 @@ class ColorPrinter(object):
                 color_code = log_type
 
             stamp = '-'.join(map(str, datetime.datetime.now().timetuple())[:6])
-            s_m = '[{}]'.format(stamp) + ' [{}]'.format(modname) if modname != '__main__' else ''
+            s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
             return self.print_color('[' + log_type.title() + '] {} '.format(s_m) + s, color_code, newline)    
 
     def p(self, s, code='', newline=True):
