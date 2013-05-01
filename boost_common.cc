@@ -161,23 +161,23 @@ void boost_common()
     boosted_common = true;
     
 
-    long int dims[] = {10, 10, 10};
-    pyarr<double> d(3, dims);
-    pyarr<float> f(3, dims);
-    pyarr<int> i(3, dims);
-    pyarr<long int> l(3, dims);
-    pyarr<unsigned char> uc(3, dims);
-    pyarr<unsigned int> ui(3, dims);
-    pyarr<char> c(3, dims);
+    // long int dims[] = {10, 10, 10};
+    // pyarr<double> d(3, dims);
+    // pyarr<float> f(3, dims);
+    // pyarr<int> i(3, dims);
+    // pyarr<long int> l(3, dims);
+    // pyarr<unsigned char> uc(3, dims);
+    // pyarr<unsigned int> ui(3, dims);
+    // pyarr<char> c(3, dims);
 
-    printf("d %d f %d i %d l %d uc %d ui %d c %d\n", 
-           d.ao->descr->type_num, 
-           f.ao->descr->type_num, 
-           i.ao->descr->type_num, 
-           l.ao->descr->type_num, 
-           uc.ao->descr->type_num, 
-           ui.ao->descr->type_num, 
-           c.ao->descr->type_num);
+    // printf("d %d f %d i %d l %d uc %d ui %d c %d\n", 
+    //        d.ao->descr->type_num, 
+    //        f.ao->descr->type_num, 
+    //        i.ao->descr->type_num, 
+    //        l.ao->descr->type_num, 
+    //        uc.ao->descr->type_num, 
+    //        ui.ao->descr->type_num, 
+    //        c.ao->descr->type_num);
 
 
     to_python_converter<MatrixMap, MatrixMap_to_numpy_str>();
@@ -185,9 +185,6 @@ void boost_common()
 
     to_python_converter<d2d::SegmentMap, SegmentMap_to_numpy_str>();
     SegmentMap_from_numpy_str();
-
-    to_python_converter<mxArray, mxArray_to_numpy_str>();
-    mxArray_from_numpy_str();
 
     to_python_converter<f2d::Pixel2DData, Pixel2DData_to_numpy_str>();
     Pixel2DData_from_numpy_str();

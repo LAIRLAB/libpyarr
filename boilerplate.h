@@ -1,10 +1,6 @@
 #ifndef _BOILERPLATE_H
 #define _BOILERPLATE_H
 
-#ifdef LINK_PYTHON_THREADS
-#include "gil_release.h"
-#endif
-
 #include <string>
 #include <vector>
 #include <iostream>
