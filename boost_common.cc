@@ -2,6 +2,9 @@
 #include <boilerplate.cpp>
 #include <autogen_converters.cpp>
 
+using std::string;
+using std::vector;
+
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
                                 PyObject* X_train, 
                                 PyObject* Y_train)

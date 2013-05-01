@@ -10,6 +10,14 @@
 #include <Python.h>
 
 #include <numpy/arrayobject.h>
+
+#include <string>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <memory>
+#include <tr1/memory>
+
 #include <boilerplate.h>
 #include <v_regressor/v_random_forest.h>
 #include <pclassifier/boosted_maxent.h>
