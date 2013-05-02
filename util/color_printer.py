@@ -1,7 +1,9 @@
+
 #usage: used to print colors terminals that support ANSI escape sequences
-import sys, os
+import sys, os, inspect, subprocess, datetime
 try:
-    from libboost_common import set_logger_verbosity
+    pass
+    #from libboost_common import set_logger_verbosity
 except ImportError:
     pass
 
@@ -104,8 +106,12 @@ class ColorPrinter(object):
     def __init__(self, verbosity = 'info', logfile = None):
         self.set_verbosity(verbosity)
         self.log_ordering = log_ordering
-        self.logfile_fn = logfile
         self.add_log_level_methods()
+        self.std_snagged = False
+        if logfile is None:
+            self.logfile_fn = 'tmplog.txt'
+        else:
+            self.logfile_fn = logfile
 
     def set_verbosity(self, v):
         try:
@@ -123,13 +129,14 @@ class ColorPrinter(object):
         import type_util
 
         def build_log_level_method(log_type):
-            return lambda self, string: self.log(string, log_type)
+            return lambda self, string: self.log(string, log_type, modname = inspect.getmodule(inspect.stack()[1][0]).__name__)
 
         for log_type in self.log_ordering:
             if log_type not in dir(self):
                 type_util.add_method(self, build_log_level_method(log_type), log_type)
 
-    def log(self, s, log_type = 'info', newline=True, color_code=None):
+    def log(self, s, log_type = 'info', newline=True, color_code=None, modname = ''):
+
 
         #only leave open while writing, allows multiple instances to write to same file
         if self.logfile_fn is not None:
@@ -139,7 +146,10 @@ class ColorPrinter(object):
         if self.log_ordering[log_type] <= self.log_ordering[self.verbosity]:
             if not color_code:
                 color_code = log_type
-            return self.print_color('[' + log_type.title() + '] ' + s, color_code, newline)    
+
+            stamp = '-'.join(map(str, datetime.datetime.now().timetuple())[:6])
+            s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
+            return self.print_color('[' + log_type.title() + '] {} '.format(s_m) + s, color_code, newline)    
 
     def p(self, s, code='', newline=True):
         return self.print_color(s, code, newline)    
@@ -165,15 +175,35 @@ class ColorPrinter(object):
     #copy any old log info to a new log, and set logfile to that.
     #mostly useful for the global colorprinter
     def branch_log(self, new_log_fn, remove_old = False):
-        if self.logfile_fn:
-            with open(self.logfile_fn) as f:
+        old = self.logfile_fn
+        self.logfile_fn = new_log_fn
+
+        #haven't figured out how to kill old tee without
+        #crashing the logging...nonoptimal to reassign self.tee
+        if self.std_snagged:
+            self.snag_stdout()
+
+        if self.logfile_fn and os.path.isfile(old):
+            with open(old) as f:
                 with open(new_log_fn, 'w') as f2:
                     f2.write(f.read())
-                    old = self.logfile_fn
-                    self.logfile_fn = new_log_fn
-        if remove_old:
-            os.remove(old)
+            if remove_old:
+                os.remove(old)
+            
+    def snag_stdout(self):
+        self.std_snagged = True
+        print "opening {}".format(self.logfile_fn)
+        sys.stdout.flush()
+        self.tee = subprocess.Popen(['tee', self.logfile_fn], 
+                                    stdin = subprocess.PIPE)
+        os.dup2(self.tee.stdin.fileno(), sys.stdout.fileno())
+        os.dup2(self.tee.stdin.fileno(), sys.stderr.fileno())
 
+    def unsnag(self):
+        if self.std_snagged:
+            self.tee.terminatep()
+        self.std_snagged = False
+  
 global gcp
 gcp = ColorPrinter('info')
 
