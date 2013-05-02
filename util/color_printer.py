@@ -201,7 +201,7 @@ class ColorPrinter(object):
 
     def unsnag(self):
         if self.std_snagged:
-            self.tee.terminatep()
+            self.tee.terminate()
         self.std_snagged = False
   
 global gcp
