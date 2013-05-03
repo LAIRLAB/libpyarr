@@ -229,6 +229,7 @@ class pyarr {
     T& operator[](ind i) {
         if (ao == NULL) {
             printf("OH FUCK\n");
+	    fflush(stdout);
         }
 
         return ((T*)ao->data)[actual_idx(i)];
