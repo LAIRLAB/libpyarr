@@ -99,10 +99,15 @@ void VTreeNode__refill_avg_outputs(VRandomForest::VTreeNode *inst)
     }
 }
 
-void VRandomForest__wrap_doTrain(VRandomForest *inst, 
+void VRandomForest__wrap_train(VRandomForest *inst, 
                                  pyarr<double> X, 
                                  pyarr<double> Y)
 {
+    if (X.dims[0] != Y.dims[0]) {
+        printf("OH NO! X.dims[0] = %ld, Y.dims[0] = %ld\n", 
+               X.dims[0], Y.dims[0]);
+        return;
+    }
     vector<const vector<double>*> Xv, Yv;
     for (int i=0; i<X.dims[0]; i++) {
         vector<double>* Xtmp = new vector<double>(X.dims[1]);
@@ -119,14 +124,15 @@ void VRandomForest__wrap_doTrain(VRandomForest *inst,
     vector<double> weights(X.dims[0], 1.0), feature_costs;
     vector<size_t> usable_features, required_features;
     
-    inst->doTrain(Xv, Yv, weights, usable_features, feature_costs, required_features);
+    inst->train(X.dims[1], Y.dims[1], 
+                Xv, Yv, weights, usable_features, feature_costs, required_features);
     for (int i=0; i<X.dims[0]; i++) {
         delete Xv[i];
         delete Yv[i];
     }
 }
 
-pyarr<double> VRandomForest__wrap_doPredict(VRandomForest *inst, 
+pyarr<double> VRandomForest__wrap_predict(VRandomForest *inst, 
                                             pyarr<double> X)
 {
     long int argh[] = {inst->getDimTarget()};
@@ -136,7 +142,7 @@ pyarr<double> VRandomForest__wrap_doPredict(VRandomForest *inst,
     for (int i=0; i<X.dims[0]; i++) {
         xv[i] = X[ind(i)];
     }
-    inst->doPredict(xv, yv);
+    inst->predict(xv, yv);
     for (int i=0; i<ret.dims[0]; i++){
         ret[ind(i)] = yv[i];
     }
@@ -250,8 +256,9 @@ void boost_ml()
         .def_readwrite("m_seeds", &VRandomForest::m_seeds)
         .def_readwrite("m_trees", &VRandomForest::m_trees)
         .def("save", &VRandomForest::save)
-        .def("doTrain", VRandomForest__wrap_doTrain)
-        .def("doPredict", VRandomForest__wrap_doPredict)
+        .def("load", &VRandomForest::load)
+        .def("train", VRandomForest__wrap_train)
+        .def("predict", VRandomForest__wrap_predict)
         ;
     class_<vector<VRandomForest*> >("VRandomForest_vec")
         .def(vector_indexing_suite<vector<VRandomForest*> >())

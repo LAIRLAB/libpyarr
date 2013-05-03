@@ -6,6 +6,34 @@ import detector_core.ta2_globals as ta2_globals
 import Image, numpy
 import img_util
 
+def savez_dir(dirname, arr):
+    try:
+        os.system('rm -rf %s'%dirname)
+    except:
+        pass
+    os.mkdir(dirname)
+
+    size = 1
+    for i in xrange(len(arr.shape)):
+        size *= arr.shape[i]
+
+    n_slices = size * 8 / 2**31 + 1
+
+    for i in xrange(n_slices):
+        numpy.savez_compressed(dirname + '/arr_%d.npz'%i, 
+                               arr[i*arr.shape[0]/n_slices : 
+                                   (i+1)*arr.shape[0]/n_slices, 
+                                   ...])
+def loadz_dir(dirname):
+    files = [f for f in os.listdir(dirname) if f[-4:] == '.npz']
+    arrfiles = [d + '/arr_%d.npz'%i for i in xrange(len(files))]
+    
+    if len(arrfiles) != len(files):
+        print "oh no there's crap in a savearr dir:", dirname
+
+    return numpy.concatenate([numpy.load(f)['arr_0'] for f in arrfiles], 
+                             axis=0)
+
 def path_relative_to_file(file_path, path):
     return os.path.abspath(os.path.dirname(file_path) + '/' + path)
 
