@@ -43,6 +43,12 @@ def basename_split(bname):
 def gts(m = True, s = False, ms = False):
     return generate_timestamp(m, s, ms)
 
+def save_vector_hierarchy(vh):
+    h = []
+    for i in range(len(vh)):
+        rl = vh.at(i)
+        
+
 def generate_timestamp(minutes=True, seconds=False, microsecond = False):
     stamp = ""
     now = datetime.datetime.now()

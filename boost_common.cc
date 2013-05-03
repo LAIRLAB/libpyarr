@@ -1,6 +1,7 @@
 #include <boost_common.h>
 #include <boilerplate.cpp>
 #include <autogen_converters.cpp>
+#include <to_python_converters.cc>
 
 using std::string;
 using std::vector;
@@ -205,6 +206,7 @@ void boost_common()
     vec_from_numpy_str();
 
     register_autogen_converters();
+    register_common_converters();
 
     class_<std::pair<unsigned int, double> >("uint_double_pair")
         .def_readwrite("first", &std::pair<unsigned int, double>::first)
@@ -221,6 +223,8 @@ void boost_common()
     class_<vector<string> >("string_vector")
 	.def(vector_indexing_suite<vector<string > >() )
 	;
+
+
     
 }
 
