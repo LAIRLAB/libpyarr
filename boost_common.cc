@@ -7,40 +7,33 @@ using std::string;
 using std::vector;
 
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
-                                PyObject* X_train, 
-                                PyObject* Y_train)
+                                pyarr<double> X_train, 
+                                pyarr<double> Y_train)
 {
-    PyArrayObject *xao = (PyArrayObject*)X_train;
-    PyArrayObject *yao = (PyArrayObject*)Y_train;
-
-    if (xao->dimensions[0] != yao->dimensions[0]) {
-      printf("oh no, X train has %zu entries but Y train has %zu\n",
-             xao->dimensions[0],
-             yao->dimensions[0]);
+    if (X_train.dims[0] != Y_train.dims[0]) {
+        printf("oh no, X train has %zu entries but Y train has %zu\n",
+               xao->dimensions[0],
+               yao->dimensions[0]);
     }
 
     vector<const vector<double>*> Xvec;
     vector<const vector<double>*> Yvec;
 
     for (int i=0; i<xao->dimensions[0]; i++) {
-      vector<double> *tmp = new vector<double>(((double*)xao->data) + i*xao->dimensions[1],
-                                               ((double*)xao->data) + (i+1)*xao->dimensions[1]);
-      Xvec.push_back(const_cast<const vector<double>*>(tmp));
+        vector<double> *tmp = new vector<double>(X_train.data + i*X_train.dims[1],
+                                                 X_train.data + (i+1)*X_train.dims[1]);
+        Xvec.push_back(const_cast<const vector<double>*>(tmp));
 
-      tmp = new vector<double>(&(((double*)yao->data)[i*yao->dimensions[1]]), 
-                               &(((double*)yao->data)[(i+1)*yao->dimensions[1]]));
-      double total_prob = 0.0;
-      for (int j=0; j<yao->dimensions[1]; j++) {
-          total_prob += (*tmp)[j];
-      }
-      Yvec.push_back(const_cast<const vector<double>*>(tmp));
+        tmp = new vector<double>(Y_train.data + i*Y_train.dims[1],
+                                 Y_train.data + (i+1)*Y_train.dims[1]);
+        Yvec.push_back(const_cast<const vector<double>*>(tmp));
     }
     vector<double> w_fold(Xvec.size(), 1.0);
     inst->train(Xvec, Yvec, w_fold, NULL, NULL);
 
     for (int i=0; i<xao->dimensions[0]; i++) {
-      delete Xvec[i];
-      delete Yvec[i];
+        delete Xvec[i];
+        delete Yvec[i];
     }
     return false;
 }
@@ -48,7 +41,7 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
 PyObject* VBoostedMaxEnt__wrap_predict(VBoostedMaxEnt* inst, 
                                        vector<double> query)
 {
-    vector<double> ret(2);
+    vector<double> ret(inst->m_nbr_labels);
     inst->predict(query, ret);
     return vec_to_numpy(ret);
 }
