@@ -12,14 +12,14 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
 {
     if (X_train.dims[0] != Y_train.dims[0]) {
         printf("oh no, X train has %zu entries but Y train has %zu\n",
-               xao->dimensions[0],
-               yao->dimensions[0]);
+               X_train.dims[0],
+               Y_train.dims[0]);
     }
 
     vector<const vector<double>*> Xvec;
     vector<const vector<double>*> Yvec;
 
-    for (int i=0; i<xao->dimensions[0]; i++) {
+    for (int i=0; i<X_train.dims[0]; i++) {
         vector<double> *tmp = new vector<double>(X_train.data + i*X_train.dims[1],
                                                  X_train.data + (i+1)*X_train.dims[1]);
         Xvec.push_back(const_cast<const vector<double>*>(tmp));
@@ -31,7 +31,7 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
     vector<double> w_fold(Xvec.size(), 1.0);
     inst->train(Xvec, Yvec, w_fold, NULL, NULL);
 
-    for (int i=0; i<xao->dimensions[0]; i++) {
+    for (int i=0; i<X_train.dims[0]; i++) {
         delete Xvec[i];
         delete Yvec[i];
     }
