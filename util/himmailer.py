@@ -1,4 +1,4 @@
-import os, sys, smtplib, signal
+import os, sys, smtplib, signal, argparse
 
 import common.util.file_util as fu
 import common.util.misc_util as mu
@@ -7,13 +7,23 @@ from email.mime.text import MIMEText
 
 default_recipients = []
 
+class himmailer_superparser(object):
+    @staticmethod
+    def create_superparser(parent):
+        p = argparse.ArgumentParser(parents = [parent], add_help = False)
+        p.add_argument('-r', '--recipients', nargs = '+')
+        return p
+    
+    @staticmethod
+    def validate(args):
+        return True
+
 class HIMMailer(object):
     def __init__(self, sender = 'himsender2013@gmail.com', u = 'himsender2013', p = 'without3explosion'):
         self.sender = sender
         self.username = u
         self.password = p
         
-
     def send_email(self, recipients, subject = 'HIMMailer', text = ''):
         if recipients is None:
             print "Recipients is None, Not sending email."
