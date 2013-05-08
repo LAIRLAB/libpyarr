@@ -15,8 +15,6 @@ class cairo_drawingarea(gtk.DrawingArea):
     def __init__(self):
         super(gtk.DrawingArea, self).__init__()
 
-        print "cairo drawingarea init"
-
         self.draw = pdbwrap(self.draw)
         self.offset = numpy.array([0,0], dtype=numpy.int32)
         
@@ -59,8 +57,6 @@ class cairo_zoomable_mixin(gtk.DrawingArea):
 
         self.scale = 1.0
 
-        print "cairo zoomable mixin init"
-    
     def on_scroll(self, widget, event):
         if event.direction == gtk.gdk.SCROLL_UP:
             self.scale *= 0.9
