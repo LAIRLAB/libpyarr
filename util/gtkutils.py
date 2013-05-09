@@ -124,6 +124,52 @@ class cairo_plotwidget(cairo_drawingarea, cairo_zoomable_mixin):
             print "done with loop"
             cc.stroke()
 
+def draw_histogram(cc, vec, height, norm=None):
+    cc.set_line_width(0.005)        
+    cc.set_source_rgb(0,0,0)
+    cc.rectangle(-1,-1,2,2)
+    cc.stroke()
+    
+    vec_max = height
+
+    for (i,v) in enumerate(vec):
+        cc.rectangle(i*2.0/len(vec)-1, -1,
+                     2.0/len(vec),
+                     v*2.0/vec_max)
+
+        cc.set_source_rgb(1,1,0.4)
+        cc.fill()
+
+        cc.rectangle(i*2.0/len(vec)-1, -1,
+                     2.0/len(vec),
+                     v*2.0/vec_max)
+
+        cc.set_source_rgb(0,0,0)
+        cc.stroke()
+
+class hist_widget(cairo_drawingarea):
+    def __init__(self, mparent, attr, norm):
+        cairo_drawingarea.__init__(self)
+        
+        self.mparent = mparent
+        self.mparent.add_dependent(self.changed)
+        
+        self.set_size_request(4*self.mparent.widget_size_ish/3, 
+                              3*self.mparent.widget_size_ish/3)
+
+        self.attr = attr
+        self.norm = norm
+
+        self.scale = 1.0
+
+
+    def draw(self, cc, w, h):
+        if getattr(self.mparent, self.attr) is not None:
+            cc.scale(self.scale*w/2.0, -self.scale*h/2.0)
+            cc.translate(1.0, -1.0)
+            cc.rotate(numpy.pi/2)
+
+            draw_histogram(cc, getattr(self.mparent, self.attr), self.norm)
 
       
 
