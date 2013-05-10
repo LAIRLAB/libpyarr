@@ -167,7 +167,7 @@ class hist_widget(cairo_drawingarea):
         if getattr(self.mparent, self.attr) is not None:
             cc.scale(self.scale*w/2.0, -self.scale*h/2.0)
             cc.translate(1.0, -1.0)
-            cc.rotate(numpy.pi/2)
+            cc.rotate(-numpy.pi/2)
 
             draw_histogram(cc, getattr(self.mparent, self.attr), self.norm)
 
