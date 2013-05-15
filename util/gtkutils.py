@@ -124,6 +124,158 @@ class cairo_plotwidget(cairo_drawingarea, cairo_zoomable_mixin):
             print "done with loop"
             cc.stroke()
 
+class box_n_overlay_widget(cairo_drawingarea, cairo_zoomable_mixin):
+    def __init__(self, parent, boxlist_attr=None, 
+                 pix_attr='pixarr'):
+        cairo_drawingarea.__init__(self)
+        cairo_zoomable_mixin.__init__(self)
+
+        self.mparent = parent
+        self.mparent.add_dependent(self.changed)
+        self.pix_attr = pix_attr
+        self.boxlist_attr = boxlist_attr
+
+        self.show_gt = False
+        self.show_gt_bboxes = False
+        
+        self.show_inf = False
+        self.show_inf_bboxes = False
+
+        self.show_ta2_bboxes = True
+        self.show_ta2_confs = False
+
+        self.min_true_thresh = 0.0
+
+        (self.w, self.h) = getattr(self.mparent, self.pix_attr).shape[:2][::-1]
+
+#        self.set_size_request(500, 500)
+        self.set_size_request(self.w, self.h)
+
+    def draw(self, cc, w, h):
+        cc.translate(self.offset[0], self.offset[1])
+        cc.scale(self.scale, self.scale)
+        
+        if self.show_gt and self.mparent.gt_arr is not None:
+            showarr = float32(getattr(self.mparent, self.pix_attr).copy())
+            
+            showarr[:,:,1] += 0.4*self.mparent.gt_arr
+            showarr[where(showarr > 255)] = 255
+            pbuf = make_pixbuf(uint8(showarr))
+
+        elif self.show_inf and self.mparent.inf_arr is not None:
+            # convert to float to prevent overflow
+            showarr = float32(getattr(self.mparent, self.pix_attr).copy())
+
+
+            showarr[:,:,0] += 0.4*self.mparent.inf_arr
+            showarr[where(showarr > 255)] = 255
+            pbuf = make_pixbuf(uint8(showarr))
+        elif hasattr(self.mparent, 'heatmap') and self.mparent.use_heatmap:
+            pbuf = make_pixbuf(self.mparent.heatmap)
+        else:
+            pbuf = make_pixbuf(getattr(self.mparent, self.pix_attr))
+            
+        cc.set_source_pixbuf(pbuf, 0,0)
+        cc.paint()
+
+        def show_extra_bboxes(arr, r, g, b):
+            if arr is None: return
+            
+            labelarr, n_labels = label(arr)
+
+            cc.set_source_rgba(r, g, b, 1.0)
+            for i in range(n_labels):
+                inds = where(labelarr == i+1)
+                
+                cc.rectangle(inds[1].min(), inds[0].min(),
+                             inds[1].max()-inds[1].min(),
+                             inds[0].max()-inds[0].min())
+                cc.set_line_width(2.0)
+                cc.stroke()
+
+        if self.show_gt_bboxes: 
+            show_extra_bboxes(self.mparent.gt_arr, 0.0, 1.0, 0.0)
+
+        if self.show_inf_bboxes:
+            show_extra_bboxes(self.mparent.inf_arr, 1.0, 0.0, 0.0)
+
+        if self.boxlist_attr is None:
+            return
+
+        for (name, boxstruct) in getattr(self.mparent, self.boxlist_attr).iteritems():
+            if boxstruct.show:
+                for box in boxstruct.boxes:
+                    true_conf = box.score
+
+                    if(true_conf < self.min_true_thresh):
+                        continue
+
+                    cc.set_source_rgb(*boxstruct.rgb)
+                    cc.rectangle(box.x, box.y, 
+                                 box.width, box.height)
+                    cc.stroke()
+
+                    if (hasattr(box, 'show_conf') and 
+                        box.show_conf):
+
+                        alpha = 0.8*true_conf + 0.1
+
+                        cc.set_source_rgba(boxstruct.rgb[0],
+                                           boxstruct.rgb[1],
+                                           boxstruct.rgb[2],
+                                           alpha)
+                        cc.rectangle(box.x, box.y,
+                                     box.width, box.height)
+                        cc.fill()
+
+    def changed(self, what=None):
+        self.queue_draw()
+
+class draggable_overlay(box_n_overlay_widget):
+    def __init__(self, parent, box_attr=None, pix_attr='pixarr'):
+        super(draggable_overlay, self).__init__(parent, box_attr, pix_attr)
+
+        self.cur_dragstart = None
+        self.cur_box = None
+        self.prev_box = None
+
+        self.connect("button_press_event", pdbwrap(self.on_press))
+        self.connect("button-release-event", pdbwrap(self.on_release))
+        self.connect("motion-notify-event", pdbwrap(self.on_motion))
+
+        self.add_events(gtk.gdk.POINTER_MOTION_MASK | gtk.gdk.BUTTON_PRESS_MASK  | gtk.gdk.BUTTON_RELEASE_MASK)
+
+    def draw(self, cc, w, h):
+        super(draggable_overlay, self).draw(cc, w, h)
+
+        if self.cur_box is not None:
+            cc.set_source_rgb(0,0,0)
+            cc.rectangle(*self.cur_box)
+            cc.stroke()
+
+            cc.set_source_rgb(1,1,1)
+            cc.set_dash([1])
+            cc.rectangle(*self.cur_box)
+            cc.stroke()
+
+    def on_press(self, widget, event):
+        if event.button == 1:
+            self.cur_dragstart = (event.x, event.y)
+            self.prev_box = self.cur_box
+
+    def on_motion(self, widget, event):
+        if self.cur_dragstart is not None:
+            self.cur_box = (self.cur_dragstart[0],
+                            self.cur_dragstart[1],
+                            event.x - self.cur_dragstart[0], 
+                            event.y - self.cur_dragstart[1])
+        self.queue_draw()
+
+    def on_release(self, widget, event):
+        self.cur_dragstart = None
+        
+
+
 def draw_histogram(cc, vec, height, norm=None):
     cc.set_line_width(0.005)        
     cc.set_source_rgb(0,0,0)
