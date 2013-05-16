@@ -1,6 +1,6 @@
 
 #usage: used to print colors terminals that support ANSI escape sequences
-import sys, os, inspect, subprocess, datetime
+import sys, os, inspect, subprocess, datetime, time
 try:
     pass
     #from libboost_common import set_logger_verbosity
@@ -83,6 +83,19 @@ def set_verbosity(v):
         v = 'info'
     verbosity = v
 
+class Tee(object):
+    def __init__(self, name, mode):
+        self.file = open(name, mode)
+        self.stdout = sys.stdout
+        sys.stdout = self
+
+    def __del__(self):
+        sys.stdout = self.stdout
+        self.file.close()
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
+
 class LogDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -93,14 +106,16 @@ class LogDict(dict):
         except KeyError:
             return max(self.values())
 
-log_ordering = LogDict({'log': 8, 
-                        'debug' : 7, 
-                        'info': 6, 
-                        'time' : 5,
-                        'progress' : 4, 
-                        'good' : 3, 
-                        'warning' : 2, 
-                        'error' : 1})
+log_ordering = LogDict({'log': (8, 'log'), 
+                        'debug' : (7, 'dbg'), 
+                        'info': (6, 'info'), 
+                        'time' : (5, 'time'),
+                        'progress' : (4, 'prog'), 
+                        'good' : (3, 'good'), 
+                        'warning' : (2, 'warn'), 
+                        'error' : (1, 'err')})
+
+
 
 class ColorPrinter(object):
     def __init__(self, verbosity = 'info', logfile = None):
@@ -147,9 +162,9 @@ class ColorPrinter(object):
             if not color_code:
                 color_code = log_type
 
-            stamp = '-'.join(map(str, datetime.datetime.now().timetuple())[:6])
+            stamp = time.strftime('%m-%d,%H:%m:%S')
             s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
-            return self.print_color('[' + log_type.title() + '] {} '.format(s_m) + s, color_code, newline)    
+            return self.print_color('[' + self.log_ordering[log_type][1].title() + '] {} '.format(s_m) + s, color_code, newline)    
 
     def p(self, s, code='', newline=True):
         return self.print_color(s, code, newline)    
