@@ -12,6 +12,8 @@ class himmailer_superparser(object):
     def create_superparser(parent):
         p = argparse.ArgumentParser(parents = [parent], add_help = False)
         p.add_argument('-r', '--recipients', nargs = '+')
+        p.add_argument('--success-message', default = 'success')
+        p.add_argument('--failure-message', default = 'failure')
         return p
     
     @staticmethod

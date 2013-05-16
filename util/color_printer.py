@@ -192,7 +192,6 @@ class ColorPrinter(object):
             
     def snag_stdout(self):
         self.std_snagged = True
-        print "opening {}".format(self.logfile_fn)
         sys.stdout.flush()
         self.tee = subprocess.Popen(['tee', self.logfile_fn], 
                                     stdin = subprocess.PIPE)
