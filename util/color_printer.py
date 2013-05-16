@@ -107,7 +107,7 @@ class LogDict(dict):
             return max(self.values())
 
 log_ordering = LogDict({'log': (8, 'log'), 
-                        'debug' : (7, 'dbg'), 
+                        'debug' : (7, 'debg'), 
                         'info': (6, 'info'), 
                         'time' : (5, 'time'),
                         'progress' : (4, 'prog'), 
@@ -151,21 +151,21 @@ class ColorPrinter(object):
                 type_util.add_method(self, build_log_level_method(log_type), log_type)
 
     def log(self, s, log_type = 'info', newline=True, color_code=None, modname = ''):
+        stamp = time.strftime('%m-%d|%H:%m:%S')
+        s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
+        final_string = '[' + self.log_ordering[log_type][1] + '] {} '.format(s_m) + s
 
+        #write to stdout, we hope
+        if self.log_ordering[log_type] <= self.log_ordering[self.verbosity]:
+            if not color_code:
+                color_code = log_type                
+            self.print_color(final_string, color_code, newline)
 
         #only leave open while writing, allows multiple instances to write to same file
         if self.logfile_fn is not None:
             with open(self.logfile_fn, 'a') as f:
-                f.write('[{}] {}\n'.format(log_type, s))
-
-        if self.log_ordering[log_type] <= self.log_ordering[self.verbosity]:
-            if not color_code:
-                color_code = log_type
-
-            stamp = time.strftime('%m-%d,%H:%m:%S')
-            s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
-            return self.print_color('[' + self.log_ordering[log_type][1].title() + '] {} '.format(s_m) + s, color_code, newline)    
-
+                f.write(final_string + '\n')
+        
     def p(self, s, code='', newline=True):
         return self.print_color(s, code, newline)    
 
