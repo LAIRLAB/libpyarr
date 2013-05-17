@@ -2,6 +2,7 @@ import os, sys, smtplib, signal, argparse
 
 import common.util.file_util as fu
 import common.util.misc_util as mu
+import common.util.color_printer as cpm
 
 from email.mime.text import MIMEText
 
@@ -14,6 +15,7 @@ class himmailer_superparser(object):
         p.add_argument('-r', '--recipients', nargs = '+')
         p.add_argument('--success-message', default = 'success')
         p.add_argument('--failure-message', default = 'failure')
+        p.add_argument('--email-message-id', default = '')
         return p
     
     @staticmethod
@@ -27,11 +29,8 @@ class HIMMailer(object):
         self.password = p
         
     def send_email(self, recipients, subject = 'HIMMailer', text = ''):
-        if recipients is None:
-            print "Recipients is None, Not sending email."
-            return
-        if len(recipients) <= 0:
-            print "No email recipients. Not sending email."
+        if recipients is None or len(recipients) == 0:
+            cpm.gcp.warning("No recipients specified, not emailing")
             return
         if isinstance(recipients, str):
             recipients = [recipients]
@@ -47,13 +46,11 @@ class HIMMailer(object):
             server.login(self.username, self.password)
             server.sendmail(self.sender, recipients, msg.as_string())
         except:
-            print "Could not send mail to: {}. Error:".format(recipients), sys.exc_info()[0]
+            cpm.gcp.error("Could not send mail to: {}. Error:".format(recipients), sys.exc_info()[0])
             
     def register_signal_handling(self, recipients, s):
         signal.signal(signal.SIGTERM, lambda signum, frame: self._eqp(recipients,
                                                                      subject = s))
-        #signal.signal(signal.SIGINT, lambda signum, frame: self._eqp(recipients,
-        #                                                            subject = s))
                      
     def _eqp(self, recipients, subject):
         print "Caught signal. Sending email to: {}...".format(recipients)

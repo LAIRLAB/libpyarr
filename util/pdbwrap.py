@@ -57,7 +57,6 @@ def pdbwrap_email(f, subject, recipients):
                                       subject = subject + stamp,
                                       text = traceback.format_exc())
             traceback.print_exc(file=sys.stderr)
-            cpm.gcp.unsnag()
             if sys.stdin.isatty():
                 pdb.post_mortem(tb)
             else:
