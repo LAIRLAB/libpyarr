@@ -35,6 +35,9 @@ def pdbwrap(f):
             print 
             type, value, tb = sys.exc_info()
             traceback.print_exc(file=sys.stderr)
+            os.system('stty sane')
+            os.system('stty reset')
+            
             if sys.stdin.isatty():
                 pdb.post_mortem(tb)
             else:

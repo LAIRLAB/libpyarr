@@ -109,6 +109,7 @@ class LogDict(dict):
 log_ordering = LogDict({'log': (8, 'log'), 
                         'debug' : (7, 'debg'), 
                         'info': (6, 'info'), 
+                        'msg': (5.5, 'msg'),
                         'time' : (5, 'time'),
                         'progress' : (4, 'prog'), 
                         'good' : (3, 'good'), 
@@ -151,7 +152,7 @@ class ColorPrinter(object):
                 type_util.add_method(self, build_log_level_method(log_type), log_type)
 
     def log(self, s, log_type = 'info', newline=True, color_code=None, modname = ''):
-        stamp = time.strftime('%m-%d|%H:%m:%S')
+        stamp = time.strftime('%m-%d|%H:%M:%S')
         s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
         final_string = '[' + self.log_ordering[log_type][1] + '] {} '.format(s_m) + s
 
@@ -217,7 +218,11 @@ class ColorPrinter(object):
         if self.std_snagged:
             self.tee.terminate()
         self.std_snagged = False
-  
+
+#    def __del__(self):
+#        os.dup2(sys.stdout.fileno(), self.tee.stdin.fileno())
+#        os.dup2(sys.stderr.fileno(), self.tee.stdin.fileno())
+
 global gcp
 gcp = ColorPrinter('info')
 

@@ -13,8 +13,6 @@ class himmailer_superparser(object):
     def create_superparser(parent):
         p = argparse.ArgumentParser(parents = [parent], add_help = False)
         p.add_argument('-r', '--recipients', nargs = '+')
-        p.add_argument('--success-message', default = 'success')
-        p.add_argument('--failure-message', default = 'failure')
         p.add_argument('--email-message-id', default = '')
         return p
     
@@ -46,7 +44,7 @@ class HIMMailer(object):
             server.login(self.username, self.password)
             server.sendmail(self.sender, recipients, msg.as_string())
         except:
-            cpm.gcp.error("Could not send mail to: {}. Error:".format(recipients), sys.exc_info()[0])
+            cpm.gcp.error("Could not send mail to: {}. Error: {}".format(recipients, sys.exc_info()[0]))
             
     def register_signal_handling(self, recipients, s):
         signal.signal(signal.SIGTERM, lambda signum, frame: self._eqp(recipients,
