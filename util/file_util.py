@@ -1,10 +1,6 @@
 import color_printer as cpm
-import os, sys
-import type_util
-import datetime
+import os, sys, type_util, datetime, Image, numpy, img_util, cPickle
 import detector_core.ta2_globals as ta2_globals
-import Image, numpy
-import img_util
 
 def savez_dir(dirname, arr):
     try:
@@ -33,6 +29,17 @@ def loadz_dir(dirname):
 
     return numpy.concatenate([numpy.load(f)['arr_0'] for f in arrfiles], 
                              axis=0)
+
+def load_pkl(fname):
+    f = open(fname)
+    ret = cPickle.load(f)
+    f.close()
+    return ret
+
+def save_pkl(obj, fname):
+    f = open(fname, 'w')
+    cPickle.dump(obj, f, cPickle.HIGHEST_PROTOCOL)
+    f.close()
 
 def path_relative_to_file(file_path, path):
     return os.path.abspath(os.path.dirname(file_path) + '/' + path)
