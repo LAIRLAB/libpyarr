@@ -87,7 +87,7 @@ int lookup_npy_type(T v) {
     if (s == "j") {
         return NPY_UINT32;
     }  
-    printf("oh no unknown typeid %s\n", s.c_str());
+    printf("pyarr.h:: oh no unknown typeid %s\n", s.c_str());
     return NPY_FLOAT64;
 }
 

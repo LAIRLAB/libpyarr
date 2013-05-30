@@ -179,7 +179,7 @@ class ColorPrinter(object):
 
         #if old python version, above doesn't work
         except:
-            fmt = "\033[1;"+str(c)+"m"+str(s)+"\033[0m"
+            fmt = "\033[0;"+str(c)+"m"+str(s)+"\033[0m"
 
         if not newline:
             print fmt,
@@ -225,6 +225,9 @@ class ColorPrinter(object):
 
 global gcp
 gcp = ColorPrinter('info')
+
+#don't let spelling mistakes get you down
+gpc = gcp
 
 def on(color_code):
     try:

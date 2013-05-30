@@ -4,6 +4,7 @@ from pdbwrap import *
 
 import color_printer as cpm
 import verify_util as vu
+import pdb
 
 try:
     from PySide.QtGui import QImage as QImage, QPixmap as QPixmap
@@ -25,14 +26,18 @@ def load_basename(prefix, mode='RGB'):
     imfname = None
     for suffix in im_suffixes:
         imfname = prefix + suffix
+
         try:
             im = Image.open(imfname)
             if im.mode != 'RGB':
-                raise IOError("Image is not RGB")
+                im = None
+                continue
         except IOError:
             continue
+
+
     if im is None:
-        raise IOError("Image for basename: {} could not be loaded".format(prefix))
+        raise IOError("Image for basename: {} could not be loaded as RGB".format(prefix))
     return (numpy.array(im).copy(), imfname)
 
 def get_segmentwise_distribution(seg, probs):
