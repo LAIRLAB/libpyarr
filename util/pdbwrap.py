@@ -20,9 +20,17 @@ def profwrap(f):
 
 class Struct:
     def __init__(self, *args, **kwargs):
+        self.__kwargs = kwargs
         for k in kwargs.keys():
             setattr(self, k, kwargs[k])
-
+    def __eq__(self, other):
+        for x in self.__kwargs.keys():
+            try:
+                if getattr(self, x) != getattr(other, x):
+                    return False
+            except AttributeError:
+                return False
+        return True
 
 def pdbwrap(f):
     '''A utility for dropping out to a debugger on exceptions.'''

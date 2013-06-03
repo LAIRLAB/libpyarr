@@ -124,11 +124,10 @@ class cairo_plotwidget(cairo_drawingarea, cairo_zoomable_mixin):
             print "done with loop"
             cc.stroke()
 
-class box_n_overlay_widget(cairo_drawingarea, cairo_zoomable_mixin):
+class box_n_overlay_widget(cairo_drawingarea):
     def __init__(self, parent, boxlist_attr=None, 
                  pix_attr='pixarr'):
         cairo_drawingarea.__init__(self)
-        cairo_zoomable_mixin.__init__(self)
 
         self.mparent = parent
         self.mparent.add_dependent(self.changed)
@@ -153,7 +152,6 @@ class box_n_overlay_widget(cairo_drawingarea, cairo_zoomable_mixin):
 
     def draw(self, cc, w, h):
         cc.translate(self.offset[0], self.offset[1])
-        cc.scale(self.scale, self.scale)
         
         if self.show_gt and self.mparent.gt_arr is not None:
             showarr = float32(getattr(self.mparent, self.pix_attr).copy())
@@ -259,7 +257,7 @@ class draggable_overlay(box_n_overlay_widget):
             cc.stroke()
 
     def on_press(self, widget, event):
-        if event.button == 1:
+        if event.button in [1,3]:
             self.cur_dragstart = (event.x, event.y)
             self.prev_box = self.cur_box
 
