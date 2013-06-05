@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import traceback, pdb, sys, hotshot
+import os
 import common.util.color_printer as cpm
 
 global profdict
@@ -36,7 +37,6 @@ def pdbwrap(f):
             type, value, tb = sys.exc_info()
             traceback.print_exc(file=sys.stderr)
             os.system('stty sane')
-            os.system('stty reset')
             
             if sys.stdin.isatty():
                 pdb.post_mortem(tb)
