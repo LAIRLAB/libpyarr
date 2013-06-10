@@ -204,7 +204,11 @@ class ColorPrinter(object):
                 with open(new_log_fn, 'w') as f2:
                     f2.write(f.read())
             if remove_old:
-                os.remove(old)
+                try:
+                    os.remove(old)
+                except OSError:
+                    print "old log already removed!"
+                
             
     def snag_stdout(self):
         self.std_snagged = True
