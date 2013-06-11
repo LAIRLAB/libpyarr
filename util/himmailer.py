@@ -63,3 +63,6 @@ class HIMMailer(object):
             sys.exit()
         else:
             print "Ignoring signal, forging ahead"
+
+def send_email(recipients, subject, body = ''):
+    HIMMailer().send_email(recipients, subject, body)
