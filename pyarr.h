@@ -10,6 +10,9 @@
 
 using std::vector;
 using std::string;
+using std::ostringstream;
+using std::cerr;
+using std::endl;
 
 class ind {
  public:
@@ -84,7 +87,7 @@ int lookup_npy_type(T v) {
     if (s == "j") {
         return NPY_UINT32;
     }  
-    printf("oh no unknown typeid %s\n", s.c_str());
+    printf("pyarr.h:: oh no unknown typeid %s\n", s.c_str());
     return NPY_FLOAT64;
 }
 
@@ -207,6 +210,12 @@ class pyarr {
         for (int d=0; d<idx.nd; d++) {
             long int this_idx = idx.inds[d];
             for (int e=d+1; e<idx.nd; e++) {
+		if (this_idx >= dims[d]) {
+		    ostringstream ss("pyarr::actual_idx out of bounds ", std::ios_base::ate);
+		    ss << "dim " << d << " max: " << dims[d] << ", requested: " << this_idx;
+		    cerr << ss.str();
+		    throw std::runtime_error(ss.str());
+		}
                 this_idx *= dims[e];
             }
             final_idx += this_idx; 

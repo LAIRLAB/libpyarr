@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 
-import traceback, pdb, sys, hotshot
+import traceback, pdb, sys, hotshot, os
+
+import common.util.color_printer as cpm
+
 global profdict
 
 profdict = {}
@@ -41,6 +44,8 @@ def pdbwrap(f):
             print 
             type, value, tb = sys.exc_info()
             traceback.print_exc(file=sys.stderr)
+            os.system('stty sane')
+            
             if sys.stdin.isatty():
                 pdb.post_mortem(tb)
             else:
@@ -65,6 +70,7 @@ def pdbwrap_email(f, subject, recipients):
             traceback.print_exc(file=sys.stderr)
             if sys.stdin.isatty():
                 pdb.post_mortem(tb)
+                sys.exit(1)
             else:
                 sys.exit(1)
     return fdebug

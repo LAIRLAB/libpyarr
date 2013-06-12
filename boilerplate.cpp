@@ -54,7 +54,7 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
     if (nd >= 0) {
         if (ao->nd != nd) {
             if (yell) {
-                printf("OH NO! nd = %d and desired nd = %d!\n",
+                printf("numpy_satisfy_properties OH NO! nd = %d and desired nd = %d!\n",
                        ao->nd, nd);
             }
             return false;

@@ -1,6 +1,6 @@
 
 #usage: used to print colors terminals that support ANSI escape sequences
-import sys, os, inspect, subprocess, datetime
+import sys, os, inspect, subprocess, datetime, time
 try:
     pass
     #from libboost_common import set_logger_verbosity
@@ -83,6 +83,19 @@ def set_verbosity(v):
         v = 'info'
     verbosity = v
 
+class Tee(object):
+    def __init__(self, name, mode):
+        self.file = open(name, mode)
+        self.stdout = sys.stdout
+        sys.stdout = self
+
+    def __del__(self):
+        sys.stdout = self.stdout
+        self.file.close()
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
+
 class LogDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -93,14 +106,17 @@ class LogDict(dict):
         except KeyError:
             return max(self.values())
 
-log_ordering = LogDict({'log': 8, 
-                        'debug' : 7, 
-                        'info': 6, 
-                        'time' : 5,
-                        'progress' : 4, 
-                        'good' : 3, 
-                        'warning' : 2, 
-                        'error' : 1})
+log_ordering = LogDict({'log': (8, 'log'), 
+                        'debug' : (7, 'debg'), 
+                        'info': (6, 'info'), 
+                        'msg': (5.5, 'msg'),
+                        'time' : (5, 'time'),
+                        'progress' : (4, 'prog'), 
+                        'good' : (3, 'good'), 
+                        'warning' : (2, 'warn'), 
+                        'error' : (1, 'err')})
+
+
 
 class ColorPrinter(object):
     def __init__(self, verbosity = 'info', logfile = None):
@@ -136,21 +152,21 @@ class ColorPrinter(object):
                 type_util.add_method(self, build_log_level_method(log_type), log_type)
 
     def log(self, s, log_type = 'info', newline=True, color_code=None, modname = ''):
+        stamp = time.strftime('%m-%d|%H:%M:%S')
+        s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
+        final_string = '[' + self.log_ordering[log_type][1] + '] {} '.format(s_m) + s
 
+        #write to stdout, we hope
+        if self.log_ordering[log_type] <= self.log_ordering[self.verbosity]:
+            if not color_code:
+                color_code = log_type                
+            self.print_color(final_string, color_code, newline)
 
         #only leave open while writing, allows multiple instances to write to same file
         if self.logfile_fn is not None:
             with open(self.logfile_fn, 'a') as f:
-                f.write('[{}] {}\n'.format(log_type, s))
-
-        if self.log_ordering[log_type] <= self.log_ordering[self.verbosity]:
-            if not color_code:
-                color_code = log_type
-
-            stamp = '-'.join(map(str, datetime.datetime.now().timetuple())[:6])
-            s_m = '[{}]'.format(stamp) + (' [{}]'.format(modname) if modname != '__main__' else '')
-            return self.print_color('[' + log_type.title() + '] {} '.format(s_m) + s, color_code, newline)    
-
+                f.write(final_string + '\n')
+        
     def p(self, s, code='', newline=True):
         return self.print_color(s, code, newline)    
 
@@ -163,7 +179,7 @@ class ColorPrinter(object):
 
         #if old python version, above doesn't work
         except:
-            fmt = "\033[1;"+str(c)+"m"+str(s)+"\033[0m"
+            fmt = "\033[0;"+str(c)+"m"+str(s)+"\033[0m"
 
         if not newline:
             print fmt,
@@ -188,11 +204,14 @@ class ColorPrinter(object):
                 with open(new_log_fn, 'w') as f2:
                     f2.write(f.read())
             if remove_old:
-                os.remove(old)
+                try:
+                    os.remove(old)
+                except OSError:
+                    print "old log already removed!"
+                
             
     def snag_stdout(self):
         self.std_snagged = True
-        print "opening {}".format(self.logfile_fn)
         sys.stdout.flush()
         self.tee = subprocess.Popen(['tee', self.logfile_fn], 
                                     stdin = subprocess.PIPE)
@@ -203,9 +222,16 @@ class ColorPrinter(object):
         if self.std_snagged:
             self.tee.terminate()
         self.std_snagged = False
-  
+
+#    def __del__(self):
+#        os.dup2(sys.stdout.fileno(), self.tee.stdin.fileno())
+#        os.dup2(sys.stderr.fileno(), self.tee.stdin.fileno())
+
 global gcp
 gcp = ColorPrinter('info')
+
+#don't let spelling mistakes get you down
+gpc = gcp
 
 def on(color_code):
     try:
