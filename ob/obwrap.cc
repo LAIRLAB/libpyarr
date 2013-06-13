@@ -22,7 +22,7 @@ public:
     {
         vector<vector<mxArray*> > responsemap;
         int min_edge_len;
-        double ratio;
+        real ratio;
         vector<float> outputFeature;
 
         int numLevels = 6;                        //DEFAULT: 6 scale levels

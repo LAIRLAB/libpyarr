@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <typedef.h>
 
 using std::vector;
 
@@ -13,6 +14,8 @@ const int mxDOUBLE_CLASS = 1;
 const int mxSINGLE_CLASS = 2;
 const int mxREAL = 1;
 typedef int mwSize;
+
+int mx_real_type();
 
 class mxArray {
 public:
@@ -60,8 +63,8 @@ public:
   friend mxArray operator-(const mxArray & op);
 
   double get(vector<int> &subscript, double & retval);
-  double get2D(int row, int col, double &retval) const;
-  double get3D(int subidx1, int subidx2, int subidx3, double &retval) const;
+  real get2D(int row, int col, real &retval) const;
+  real get3D(int subidx1, int subidx2, int subidx3, real &retval) const;
   double * getPtr3D(int subidx1, int subidx2, int subidx3);
   void set(vector<int> subscript, double val);
   void set2D(int row, int col, double val);

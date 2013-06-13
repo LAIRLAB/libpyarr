@@ -80,7 +80,6 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
         }
         return false;
     }
-
     return true;
 }
 
@@ -197,9 +196,10 @@ struct mxArray_from_numpy_str {
     static void* convertible(PyObject *o)
     {
         PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 2, NULL, NPY_FLOAT64, true) &&
-            !numpy_satisfy_properties(ao, 3, NULL, NPY_FLOAT64, true))
+
+        int cls = npy_real_type();
+        if (!numpy_satisfy_properties(ao, 2, NULL, cls, true) &&
+            !numpy_satisfy_properties(ao, 3, NULL, cls, true))
             return 0;
 
         return (void*)o;
@@ -211,8 +211,8 @@ struct mxArray_from_numpy_str {
 
         void* storage = ((converter::rvalue_from_python_storage<mxArray>*)data)->storage.bytes;
         PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) mxArray(ao->nd, (int*)ao->dimensions, mxDOUBLE_CLASS, mxREAL);
+        
+        new (storage) mxArray(ao->nd, (int*)ao->dimensions, mx_real_type(), mxREAL);
         mxArray* m = (mxArray*)storage;
         
         data->convertible = storage;
@@ -220,7 +220,7 @@ struct mxArray_from_numpy_str {
         if (ao->nd == 2) {
             for (int col=0; col < m->Dims[1]; col++) {
                 for (int row=0; row < m->Dims[0]; row++) {
-                    m->set2D(row, col, ((double*)ao->data)[row*m->Dims[1]* + 
+                    m->set2D(row, col, ((real*)ao->data)[row*m->Dims[1]* + 
                                                            col]);
                 }
             }
@@ -229,7 +229,7 @@ struct mxArray_from_numpy_str {
             for (int c=0; c < m->Dims[2]; c++) {
                 for (int col=0; col < m->Dims[1]; col++) {
                     for (int row=0; row < m->Dims[0]; row++) {
-                        m->set3D(row, col, c, ((double*)ao->data)[row*m->Dims[1]*m->Dims[2] + 
+                        m->set3D(row, col, c, ((real*)ao->data)[row*m->Dims[1]*m->Dims[2] + 
                                                                   col*m->Dims[2] + 
                                                                   c]);
                     }
@@ -252,11 +252,11 @@ struct mxArray_to_numpy_str {
             /* fucking column major bitches */ 
             npy_intp dims[] = {m.Dims[0], m.Dims[1]};
             
-            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_FLOAT64);
+            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
             for (int i=0; i<dims[0]; i++) {
                 for (int j=0; j<dims[1]; j++) {
-                    double fake;
-                    ((double*)retval->data)[i*dims[1] + j] = m.get2D(i, j, fake);
+                    real fake;
+                    ((real*)retval->data)[i*dims[1] + j] = m.get2D(i, j, fake);
                 }
             }
             
@@ -265,12 +265,12 @@ struct mxArray_to_numpy_str {
         else if (m.NDim == 3) {
             npy_intp dims[] = {m.Dims[0], m.Dims[1], m.Dims[2]};
             
-            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, NPY_FLOAT64);
+            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
             for (int c=0; c<dims[2]; c++) {
                 for (int col=0; col<dims[1]; col++) {
                     for (int row=0; row<dims[0]; row++) {
-                        double fake;
-                        ((double*)retval->data)[row*dims[1]*dims[2] + col*dims[2] + c] = \
+                        real fake;
+                        ((real*)retval->data)[row*dims[1]*dims[2] + col*dims[2] + c] = \
                             m.get3D(row, col, c, fake);
                     }
                 }
@@ -290,8 +290,7 @@ struct Pixel2DData_from_numpy_str {
     {
         PyArrayObject *ao = (PyArrayObject*)o; 
         
-        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-        if (!numpy_satisfy_properties(ao, 2, NULL, type, true))
+        if (!numpy_satisfy_properties(ao, 2, NULL, npy_real_type(), true))
             return 0;
 
         return (void*)o;
@@ -300,7 +299,6 @@ struct Pixel2DData_from_numpy_str {
     static void construct(PyObject *o,
                           converter::rvalue_from_python_stage1_data* data)
     {
-
         void* storage = ((converter::rvalue_from_python_storage<f2d::Pixel2DData>*)data)->storage.bytes;
         PyArrayObject *ao = (PyArrayObject*)o;        
 
@@ -334,8 +332,7 @@ struct Pixel2DData_to_numpy_str {
     static PyObject *convert(const f2d::Pixel2DData &m) {
         npy_intp dims[] = {m.m_image_height, m.m_image_width};
 
-        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, type);
+        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
 
         for (int i=0; i<dims[0]; i++) {
             for (int j=0; j<dims[1];j++) {
@@ -416,9 +413,7 @@ struct vec_from_numpy_str {
     static void* convertible(PyObject *o)
     {
         PyArrayObject *ao = (PyArrayObject*)o; 
-        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-
-        if (!numpy_satisfy_properties(ao, 1, NULL, type, true))
+        if (!numpy_satisfy_properties(ao, 1, NULL, npy_real_type(), true))
             return 0;
 
         return (void*)o;
@@ -453,8 +448,7 @@ struct vec_to_numpy_str {
     static PyObject *convert(const vector<real>& v)
     {
         npy_intp dims[] = {v.size()};
-        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-        PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, type);
+        PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, npy_real_type());
         
         for (int i=0; i<v.size(); i++) {
             ((real*)ao->data)[i] = v[i];
@@ -489,9 +483,7 @@ PyObject *vecvec_to_numpy(const vector<const vector<real> *> v)
     npy_intp dims[] = {v.size(), v[0]->size()};
 
     PyArrayObject *retval;
-    int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-
-    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, type);
+    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
     for (int i=0; i<dims[0];i++) {
 	for (int j=0; j<dims[1]; j++) {
 	    ((real*)retval->data)[i*dims[1] + j] = (*v[i])[j];
@@ -539,11 +531,11 @@ PyObject* mxarray2d_to_numpy(mxArray* arr)
     /* fucking column major bitches */ 
     npy_intp dims[] = {arr->Dims[0], arr->Dims[1]};
     
-    PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_FLOAT64);
+    PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
     for (int i=0; i<dims[0]; i++) {
 	for (int j=0; j<dims[1]; j++) {
-	    double fake;
-	    ((double*)retval->data)[i*dims[1] + j] = arr->get2D(i, j, fake);
+	    real fake;
+	    ((real*)retval->data)[i*dims[1] + j] = arr->get2D(i, j, fake);
 	}
     }
 
@@ -555,17 +547,17 @@ mxArray* numpy_to_mxarray3d(PyObject *o)
 {
     PyArrayObject *ao = (PyArrayObject*)o;
 
-    if (!numpy_satisfy_properties(ao, 3, NULL, NPY_FLOAT64, true)) {
+    if (!numpy_satisfy_properties(ao, 3, NULL, npy_real_type(), true)) {
         return NULL;
     }
 
     int dims[] = {ao->dimensions[0], ao->dimensions[1], ao->dimensions[2]};
      
-    mxArray* ret = mxCreateNumericArray(3, dims, mxDOUBLE_CLASS, mxREAL);
+    mxArray* ret = mxCreateNumericArray(3, dims, mx_real_type(), mxREAL);
     for (int c=0; c<dims[2]; c++) {
 	for (int col=0; col<dims[1]; col++) {
 	    for (int row=0; row<dims[0]; row++) {
-		ret->set3D(row, col, c, ((double*)ao->data)[row*dims[1]*dims[2] + col*dims[2] + c]);
+		ret->set3D(row, col, c, ((real*)ao->data)[row*dims[1]*dims[2] + col*dims[2] + c]);
 	    }
 	}
     }
@@ -575,13 +567,13 @@ mxArray* numpy_to_mxarray3d(PyObject *o)
 PyObject* mxarray3d_to_numpy(mxArray* arr) 
 {
     npy_intp dims[] = {arr->Dims[0], arr->Dims[1], arr->Dims[2]};
-    
-    PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, NPY_FLOAT64);
+
+    PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
     for (int c=0; c<dims[2]; c++) {
 	for (int col=0; col<dims[1]; col++) {
 	    for (int row=0; row<dims[0]; row++) {
-		double fake;
-		((double*)retval->data)[row*dims[1]*dims[2] + col*dims[2] + c] = \
+		real fake;
+		((real*)retval->data)[row*dims[1]*dims[2] + col*dims[2] + c] = \
                     arr->get3D(row, col, c, fake);
 	    }
 	}
@@ -593,15 +585,15 @@ shared_ptr<f2d::Pixel2DData> numpy_to_pixeldata(PyObject *o)
 {
     PyArrayObject *ao = (PyArrayObject*)o;
 
-    if (!numpy_satisfy_properties(ao, 2, NULL, NPY_FLOAT64, true)) {
+    if (!numpy_satisfy_properties(ao, 2, NULL, npy_real_type(), true)) {
         return shared_ptr<f2d::Pixel2DData>();
     }
   
-    vector<vector<double> > M_data(ao->dimensions[0], 
-                                   vector<double>(ao->dimensions[1], 0.0));
+    vector<vector<real> > M_data(ao->dimensions[0], 
+                                   vector<real>(ao->dimensions[1], 0.0));
     for (size_t r = 0; r < ao->dimensions[0]; r++) {
 	for (size_t c = 0; c < ao->dimensions[1]; c++) {
-	    M_data[r][c] = ((double*)ao->data)[r*ao->dimensions[1] + c];
+	    M_data[r][c] = ((real*)ao->data)[r*ao->dimensions[1] + c];
 	}
     }
     shared_ptr<f2d::Pixel2DData> data = \
@@ -651,9 +643,7 @@ void fill_vec_with_resps(vector<shared_ptr<const f2d::Pixel2DData> >& vec_pix_da
 vector<real> numpy_to_vec(PyObject *o) 
 {
     PyArrayObject *ao = (PyArrayObject*)o;
-    int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-
-    if (!numpy_satisfy_properties(ao, 1, NULL, type, true)) {
+    if (!numpy_satisfy_properties(ao, 1, NULL, npy_real_type(), true)) {
         return vector<real>();
     }
 
@@ -667,8 +657,7 @@ vector<real> numpy_to_vec(PyObject *o)
 PyObject* vec_to_numpy(vector<real> v)
 {
     npy_intp dims[] = {v.size()};
-    int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
-    PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, type);
+    PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, npy_real_type());
     
     for (int i=0; i<v.size(); i++) {
         ((real*)ao->data)[i] = v[i];

@@ -52,9 +52,9 @@ int * getIntTripleTuple(int s1, int s2, int s3)
  * the valid indice of feat and scale start from 1, following the Matlab convention
  */
 
-void featpyramid(IN const mxArray * input, IN const int sbin, IN const int interval, OUT vector<mxArray*> &feat, OUT vector<double> &scale)
+void featpyramid(IN const mxArray * input, IN const int sbin, IN const int interval, OUT vector<mxArray*> &feat, OUT vector<real> &scale)
 {
-    double sc = pow(2.0, 1.0 / interval);
+    real sc = pow(2.0, 1.0 / interval);
     int h = size(input, 0), w = size(input, 1);
     int max_scale = 1+floor(log(min(h, w) / (5.0 * sbin)) / log(sc)); 
     if (0) {
@@ -112,7 +112,7 @@ void featpyramid(IN const mxArray * input, IN const int sbin, IN const int inter
 /*
  * THIS IS THE NEW VERSION THAT DOES THE DETECTION AFTER THE FEATPYRAMID HAS BEEN CALLED
  */
-void detect_postfeatpyr(IN const vector<mxArray *> &feat, IN const vector<double> &scales, IN const CModel &model, OUT vector<mxArray *> & vecResponsemap, int numComponents)
+void detect_postfeatpyr(IN const vector<mxArray *> &feat, IN const vector<real> &scales, IN const CModel &model, OUT vector<mxArray *> & vecResponsemap, int numComponents)
 {
  
     int i;
@@ -132,8 +132,8 @@ void detect_postfeatpyr(IN const vector<mxArray *> &feat, IN const vector<double
 	oidx[c] = model.components[c-1]->offsetindex;
     }
   
-    int padx = ceil((double)model.maxsize[1]/2+1);
-    int pady = ceil((double)model.maxsize[0]/2+1);
+    int padx = ceil((real)model.maxsize[1]/2+1);
+    int pady = ceil((real)model.maxsize[0]/2+1);
 
     mxArray * featr;
     vector<mxArray *> rootmatch;

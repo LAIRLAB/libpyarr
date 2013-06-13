@@ -91,11 +91,12 @@ mxArray * getMxNumericalArrayFromInt(const int num)
   return mxarray;
 }
 
-mxArray * padarray3D(mxArray * mxsrc, int * padsize, double val)
+mxArray * padarray3D(mxArray * mxsrc, int * padsize, real val)
 {
-  if (mxGetNumberOfDimensions(mxsrc) != 3 || 
-      mxGetClassID(mxsrc) != mxDOUBLE_CLASS)
-    mexErrMsgTxt("Invalid input");  
+    int cls = (sizeof(real) == sizeof(double)) ? mxDOUBLE_CLASS : mxSINGLE_CLASS;
+    if (mxGetNumberOfDimensions(mxsrc) != 3 || 
+        mxGetClassID(mxsrc) != cls)
+        mexErrMsgTxt("Invalid input");  
 
   const int *sdims = mxGetDimensions(mxsrc);
 
@@ -104,7 +105,7 @@ mxArray * padarray3D(mxArray * mxsrc, int * padsize, double val)
   ddims[1] = sdims[1] + 2 * padsize[1];
   ddims[2] = sdims[2] + 2 * padsize[2];
  
-  mxArray * mxdst = mxCreateNumericArray(3, ddims, mxDOUBLE_CLASS, mxREAL);
+  mxArray * mxdst = mxCreateNumericArray(3, ddims, cls, mxREAL);
   double *dst = (double *)mxGetPr(mxdst);
   for (int i = 0; i < ddims[0] * ddims[1] * ddims[2]; i++)
     dst[i] = val;  

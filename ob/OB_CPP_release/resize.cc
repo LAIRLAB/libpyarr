@@ -6,6 +6,7 @@
 #include "mymex.h"
 #include "matlabwrapper.h"
 #include <cstdio>
+#include <typedef.h>
 
 /*
  * Fast image subsampling.
@@ -15,11 +16,11 @@
 // struct used for caching interpolation values
 struct alphainfo {
   int si, di;
-  double alpha;
+  real alpha;
 };
 
 // copy src into dst using pre-computed interpolation values
-void alphacopy(double *src, double *dst, struct alphainfo *ofs, int n) {
+void alphacopy(real *src, real *dst, struct alphainfo *ofs, int n) {
   struct alphainfo *end = ofs + n;
   while (ofs != end) {
     dst[ofs->di] += ofs->alpha * src[ofs->si];
@@ -29,10 +30,10 @@ void alphacopy(double *src, double *dst, struct alphainfo *ofs, int n) {
 
 // resize along each column
 // result is transposed, so we can apply it twice for a complete resize
-void resize1dtran(double *src, int sheight, double *dst, int dheight, 
+void resize1dtran(real *src, int sheight, real *dst, int dheight, 
 		  int width, int chan) {
-  double scale = (double)dheight/(double)sheight;
-  double invscale = (double)sheight/(double)dheight;
+  real scale = (real)dheight/(real)sheight;
+  real invscale = (real)sheight/(real)dheight;
   
   // we cache the interpolation values since they can be 
   // shared among different columns
@@ -40,8 +41,8 @@ void resize1dtran(double *src, int sheight, double *dst, int dheight,
   alphainfo ofs[len];
   int k = 0;
   for (int dy = 0; dy < dheight; dy++) {
-    double fsy1 = dy * invscale;
-    double fsy2 = fsy1 + invscale;
+    real fsy1 = dy * invscale;
+    real fsy2 = fsy1 + invscale;
     int sy1 = (int)ceil(fsy1);
     int sy2 = (int)floor(fsy2);       
 
@@ -71,21 +72,21 @@ void resize1dtran(double *src, int sheight, double *dst, int dheight,
   }
 
   // resize each column of each color channel
-  bzero(dst, chan*width*dheight*sizeof(double));
+  bzero(dst, chan*width*dheight*sizeof(real));
   for (int c = 0; c < chan; c++) {
     for (int x = 0; x < width; x++) {
-      double *s = src + c*width*sheight + x*sheight;
-      double *d = dst + c*width*dheight + x;
+      real *s = src + c*width*sheight + x*sheight;
+      real *d = dst + c*width*dheight + x;
       alphacopy(s, d, ofs, k);
     }
   }
 }
 
 // Perform a basic 'pixel' enlarging resample.
-void upSample_NN(double *src, int sheight, int swidth, double *dst, int dheight, int dwidth, int chan)
+void upSample_NN(real *src, int sheight, int swidth, real *dst, int dheight, int dwidth, int chan)
 {
-    double scaleWidth =  (double)dwidth / (double)swidth;
-    double scaleHeight = (double)dheight / (double)sheight;
+    real scaleWidth =  (real)dwidth / (real)swidth;
+    real scaleHeight = (real)dheight / (real)sheight;
 
     for(int cy = 0; cy < dheight; cy++)
     {
@@ -106,27 +107,28 @@ void upSample_NN(double *src, int sheight, int swidth, double *dst, int dheight,
 }
 
 // main function
-// takes a double color image and a scaling factor
+// takes a real color image and a scaling factor
 // returns resized image
-mxArray *resize(const mxArray *mxsrc, const double scale) {
-  double *src = (double *)mxGetPr(mxsrc);
+mxArray *resize(const mxArray *mxsrc, const real scale) {
+  real *src = (real *)mxGetPr(mxsrc);
   const int *sdims = mxGetDimensions(mxsrc);
+  int cls = (sizeof(real) == sizeof(double)) ? mxDOUBLE_CLASS : mxSINGLE_CLASS;
   if (mxGetNumberOfDimensions(mxsrc) != 3 || 
-      mxGetClassID(mxsrc) != mxDOUBLE_CLASS)
+      mxGetClassID(mxsrc) != cls)
     mexErrMsgTxt("Invalid input");  
 
   int ddims[3];
   ddims[0] = (int)round(sdims[0]*scale);
   ddims[1] = (int)round(sdims[1]*scale);
   ddims[2] = sdims[2];
-  mxArray *mxdst = mxCreateNumericArray(3, ddims, mxDOUBLE_CLASS, mxREAL);
-  double *dst = (double *)mxGetPr(mxdst);
+  mxArray *mxdst = mxCreateNumericArray(3, ddims, cls, mxREAL);
+  real *dst = (real *)mxGetPr(mxdst);
 
   if (scale > 1) {
       upSample_NN(src, sdims[0], sdims[1], dst, ddims[0], ddims[1], sdims[2]); 
   }
   else { 
-      double *tmp = (double *)mxCalloc(ddims[0]*sdims[1]*sdims[2], sizeof(double));
+      real *tmp = (real *)mxCalloc(ddims[0]*sdims[1]*sdims[2], sizeof(real));
       resize1dtran(src, sdims[0], tmp, ddims[0], sdims[1], sdims[2]);
       resize1dtran(tmp, sdims[1], dst, ddims[1], ddims[0], sdims[2]);
       mxFree(tmp);

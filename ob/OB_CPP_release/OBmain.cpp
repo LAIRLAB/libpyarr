@@ -205,7 +205,7 @@ int WriteToDisk(vector<mxArray *> & vecMatrix, string szFileName)
                 cout << "matrix dimension incorrect" << endl;
             int nrow = vecMatrix[i]->Dims[0], ncol = vecMatrix[i]->Dims[1];
             fprintf(fp, "%d %d\n", nrow, ncol); 
-            double val;
+            real val;
             for (int x = 0; x < ncol; x++) {
                 for (int y = 0; y < nrow; y++) fprintf(fp, "%lf ", vecMatrix[i]->get2D(y, x, val));
                 fprintf(fp, "\n");
@@ -254,7 +254,7 @@ int extractOBFeature(mxArray * input, vector<CModel> &modelList, bool saveMap, s
     int nmaps;
 
     //Allocate memory for loops
-    double temp;
+    real temp;
 
     //All the models in the 177 detectors have sbin=8, interval=10, so we calculate the feature
     //pyramid per image, rather than per detection. This requires hardcoding parameters:
@@ -262,7 +262,7 @@ int extractOBFeature(mxArray * input, vector<CModel> &modelList, bool saveMap, s
     int sbin = 8;
 
     vector<mxArray *> feat; 
-    vector<double> scales;
+    vector<real> scales;
 
     float rmap[input->Dims[0]* input->Dims[1]];    
 

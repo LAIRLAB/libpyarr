@@ -7,6 +7,10 @@ using std::cout;
 using std::endl;
 using std::string;
 
+int mx_real_type() {
+    return (sizeof(real) == sizeof(double)) ? mxDOUBLE_CLASS : mxSINGLE_CLASS;
+}
+
 mxArray * mxCreateDoubleScalar(double val) 
 {
     int dims[] = {1,};
@@ -221,12 +225,10 @@ double mxArray::get(vector<int> &subscript, double & retval)
     return retval;
 }
 
-double mxArray::get2D(int row, int col, double & retval) const
+real mxArray::get2D(int row, int col, real & retval) const
 { 
-    if (classID == mxDOUBLE_CLASS) {
-        retval = (((double*)this->data))[col * Dims[0] + row];
-    } else if (classID == mxSINGLE_CLASS) {
-        retval = (((float*)this->data))[col * Dims[0] + row];
+    if (classID == mx_real_type()) {
+        retval = (((real*)this->data))[col * Dims[0] + row];
     }
     return retval;
 }
@@ -240,10 +242,11 @@ void mxArray::set2D(int row, int col, double val)
     }    
 }
 
-double mxArray::get3D(int subidx1, int subidx2, int subidx3, double &retval) const
+real mxArray::get3D(int subidx1, int subidx2, int subidx3, real &retval) const
 { 
-    if (classID == mxDOUBLE_CLASS) {
-        retval = (((double*)this->data))[subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1]];
+    int cls = (sizeof(real) == sizeof(double)) ? mxDOUBLE_CLASS : mxSINGLE_CLASS;
+    if (classID == cls) {
+        retval = (((real*)this->data))[subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1]];
         return retval;
     }
     else {
@@ -295,7 +298,7 @@ int WriteToDisk3D(vector<mxArray *> & vecMatrix, string szFileName)
                 cout << "matrix dimension incorrect" << endl;
             int nrow = vecMatrix[i]->Dims[0], ncol = vecMatrix[i]->Dims[1];
             fprintf(fp, "%d %d\n", nrow, ncol);
-            double val;
+            real val;
             for (int x = 0; x < ncol; x++)
             {
                 for (int y = 0; y < nrow; y++)

@@ -14,6 +14,10 @@ using std::ostringstream;
 using std::cerr;
 using std::endl;
 
+int npy_real_type() {
+    return (sizeof(real) == sizeof(double)) ? NPY_FLOAT64 : NPY_FLOAT32;
+}
+
 class ind {
  public:
     int nd;
