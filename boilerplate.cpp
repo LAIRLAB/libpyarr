@@ -290,7 +290,8 @@ struct Pixel2DData_from_numpy_str {
     {
         PyArrayObject *ao = (PyArrayObject*)o; 
         
-        if (!numpy_satisfy_properties(ao, 2, NULL, NPY_FLOAT64, true))
+        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
+        if (!numpy_satisfy_properties(ao, 2, NULL, type, true))
             return 0;
 
         return (void*)o;
@@ -316,7 +317,7 @@ struct Pixel2DData_from_numpy_str {
 
         for (int i=0; i<ao->dimensions[0]; i++) {
             for (int j=0; j<ao->dimensions[1]; j++) {
-                m->m_features.push_back(vector<double>(1, ((double*)ao->data)[i*ao->dimensions[1] + j]));
+                m->m_features.push_back(vector<real>(1, ((real*)ao->data)[i*ao->dimensions[1] + j]));
             }
         }
     }
@@ -332,12 +333,13 @@ struct Pixel2DData_from_numpy_str {
 struct Pixel2DData_to_numpy_str {
     static PyObject *convert(const f2d::Pixel2DData &m) {
         npy_intp dims[] = {m.m_image_height, m.m_image_width};
-        
-        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_FLOAT64);
+
+        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
+        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, type);
 
         for (int i=0; i<dims[0]; i++) {
             for (int j=0; j<dims[1];j++) {
-                ((double*)retval->data)[i*dims[1] + 
+                ((real*)retval->data)[i*dims[1] + 
                                         j] = m.m_features[i][j];
             }
         }
@@ -414,8 +416,9 @@ struct vec_from_numpy_str {
     static void* convertible(PyObject *o)
     {
         PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 1, NULL, NPY_FLOAT64, true))
+        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
+
+        if (!numpy_satisfy_properties(ao, 1, NULL, type, true))
             return 0;
 
         return (void*)o;
@@ -424,17 +427,17 @@ struct vec_from_numpy_str {
     static void construct(PyObject *o,
                           converter::rvalue_from_python_stage1_data* data)
     {
-        void* storage = ((converter::rvalue_from_python_storage<vector<double> >*)data)->storage.bytes;
+        void* storage = ((converter::rvalue_from_python_storage<vector<real> >*)data)->storage.bytes;
         PyArrayObject *ao = (PyArrayObject*)o;        
 
-        new (storage) vector<double>(ao->dimensions[0]);
+        new (storage) vector<real>(ao->dimensions[0]);
 
-        vector<double> *v = (vector<double>*)storage;
+        vector<real> *v = (vector<real>*)storage;
 
         data->convertible = storage;
 
         for (int i=0; i<ao->dimensions[0]; i++) {
-            (*v)[i] = ((double*)ao->data)[i];
+            (*v)[i] = ((real*)ao->data)[i];
         }
     }
 
@@ -442,18 +445,19 @@ struct vec_from_numpy_str {
     {
         converter::registry::push_back(&convertible, 
                                        &construct, 
-                                       type_id<vector<double> >());
+                                       type_id<vector<real> >());
     }
 };
 
 struct vec_to_numpy_str {
-    static PyObject *convert(const vector<double>& v)
+    static PyObject *convert(const vector<real>& v)
     {
         npy_intp dims[] = {v.size()};
-        PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_FLOAT64);
+        int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
+        PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, type);
         
         for (int i=0; i<v.size(); i++) {
-            ((double*)ao->data)[i] = v[i];
+            ((real*)ao->data)[i] = v[i];
         }
         
         return (PyObject*)ao;
@@ -480,16 +484,17 @@ MatrixMap numpy_to_matrixmap(PyObject *o)
     return ret;
 }
 
-PyObject *vecvec_to_numpy(const vector<const vector<double> *> v) 
+PyObject *vecvec_to_numpy(const vector<const vector<real> *> v) 
 {
     npy_intp dims[] = {v.size(), v[0]->size()};
 
     PyArrayObject *retval;
+    int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
 
-    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_FLOAT64);
+    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, type);
     for (int i=0; i<dims[0];i++) {
 	for (int j=0; j<dims[1]; j++) {
-	    ((double*)retval->data)[i*dims[1] + j] = (*v[i])[j];
+	    ((real*)retval->data)[i*dims[1] + j] = (*v[i])[j];
 	}
     }
 
@@ -643,50 +648,33 @@ void fill_vec_with_resps(vector<shared_ptr<const f2d::Pixel2DData> >& vec_pix_da
     }
 }
 
-vector<double> numpy_to_vec(PyObject *o) 
+vector<real> numpy_to_vec(PyObject *o) 
 {
     PyArrayObject *ao = (PyArrayObject*)o;
+    int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
 
-    if (!numpy_satisfy_properties(ao, 1, NULL, NPY_FLOAT64, true)) {
-        return vector<double>();
+    if (!numpy_satisfy_properties(ao, 1, NULL, type, true)) {
+        return vector<real>();
     }
 
-    vector<double> ret(ao->dimensions[0]);
+    vector<real> ret(ao->dimensions[0]);
     for (int i=0; i<ao->dimensions[0]; i++) {
-        ret[i] = ((double*)ao->data)[i];
+        ret[i] = ((real*)ao->data)[i];
     }
     return ret;
 }
 
-PyObject* vec_to_numpy(vector<double> v)
+PyObject* vec_to_numpy(vector<real> v)
 {
     npy_intp dims[] = {v.size()};
-    PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_FLOAT64);
+    int type = (sizeof(real) == sizeof(double) ? NPY_FLOAT64 : NPY_FLOAT32);
+    PyArrayObject *ao = (PyArrayObject*)PyArray_SimpleNew(1, dims, type);
     
     for (int i=0; i<v.size(); i++) {
-        ((double*)ao->data)[i] = v[i];
+        ((real*)ao->data)[i] = v[i];
     }
     
     return (PyObject*)ao;
-}
-
-pyarr<double> extract_featbox(pyarr<double> feat_arr, 
-                              int i, int j,
-                              int win_h, int win_w)
-{
-    int feat_depth = feat_arr.dims[2];
-    long int argh[] = {win_h, win_w, feat_depth};
-    pyarr<double> featbox(3, argh);
-
-    for (int k=0; k<win_h; k++) {
-        for (int l=0; l<win_w; l++) {
-            for (int m=0; m<feat_depth; m++) {
-                featbox[ind(k,l,m)] = feat_arr[ind(i+k, j+l, m)];
-            }
-        }
-    }
-    
-    return featbox;
 }
 
 

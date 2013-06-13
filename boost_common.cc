@@ -7,8 +7,8 @@ using std::string;
 using std::vector;
 
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
-                                pyarr<double> X_train, 
-                                pyarr<double> Y_train)
+                                pyarr<real> X_train, 
+                                pyarr<real> Y_train)
 {
     if (X_train.dims[0] != Y_train.dims[0]) {
         printf("oh no, X train has %zu entries but Y train has %zu\n",
@@ -16,19 +16,19 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
                Y_train.dims[0]);
     }
 
-    vector<const vector<double>*> Xvec;
-    vector<const vector<double>*> Yvec;
+    vector<const vector<real>*> Xvec;
+    vector<const vector<real>*> Yvec;
 
     for (int i=0; i<X_train.dims[0]; i++) {
-        vector<double> *tmp = new vector<double>(X_train.data + i*X_train.dims[1],
+        vector<real> *tmp = new vector<real>(X_train.data + i*X_train.dims[1],
                                                  X_train.data + (i+1)*X_train.dims[1]);
-        Xvec.push_back(const_cast<const vector<double>*>(tmp));
+        Xvec.push_back(const_cast<const vector<real>*>(tmp));
 
-        tmp = new vector<double>(Y_train.data + i*Y_train.dims[1],
+        tmp = new vector<real>(Y_train.data + i*Y_train.dims[1],
                                  Y_train.data + (i+1)*Y_train.dims[1]);
-        Yvec.push_back(const_cast<const vector<double>*>(tmp));
+        Yvec.push_back(const_cast<const vector<real>*>(tmp));
     }
-    vector<double> w_fold(Xvec.size(), 1.0);
+    vector<real> w_fold(Xvec.size(), 1.0);
     inst->train(Xvec, Yvec, w_fold, NULL, NULL);
 
     for (int i=0; i<X_train.dims[0]; i++) {
@@ -39,20 +39,20 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
 }
 
 PyObject* VBoostedMaxEnt__wrap_predict(VBoostedMaxEnt* inst, 
-                                       vector<double> query)
+                                       vector<real> query)
 {
-    vector<double> ret(inst->m_nbr_labels);
+    vector<real> ret(inst->m_nbr_labels);
     inst->predict(query, ret);
     return vec_to_numpy(ret);
 }
 
-pyarr<double> VBoostedMaxEnt__batch_predict(VBoostedMaxEnt* inst, 
-                                            pyarr<double> queries)
+pyarr<real> VBoostedMaxEnt__batch_predict(VBoostedMaxEnt* inst, 
+                                            pyarr<real> queries)
 {
     long int argh[] = {queries.dims[0], inst->m_nbr_labels};
-    pyarr<double> ret(2, argh);
-    vector<double> tmp_ret(inst->m_nbr_labels);
-    vector<double> query(queries.dims[1]);
+    pyarr<real> ret(2, argh);
+    vector<real> tmp_ret(inst->m_nbr_labels);
+    vector<real> query(queries.dims[1]);
 
     for (int i=0; i<queries.dims[0]; i++) {
         for (int j=0; j<queries.dims[1]; j++) {
@@ -115,28 +115,28 @@ void VTreeNode__refill_avg_outputs(VRandomForest::VTreeNode *inst)
 }
 
 void VRandomForest__wrap_train(VRandomForest *inst, 
-                                 pyarr<double> X, 
-                                 pyarr<double> Y)
+                                 pyarr<real> X, 
+                                 pyarr<real> Y)
 {
     if (X.dims[0] != Y.dims[0]) {
         printf("OH NO! X.dims[0] = %ld, Y.dims[0] = %ld\n", 
                X.dims[0], Y.dims[0]);
         return;
     }
-    vector<const vector<double>*> Xv, Yv;
+    vector<const vector<real>*> Xv, Yv;
     for (int i=0; i<X.dims[0]; i++) {
-        vector<double>* Xtmp = new vector<double>(X.dims[1]);
-        vector<double>* Ytmp = new vector<double>(Y.dims[1]);
+        vector<real>* Xtmp = new vector<real>(X.dims[1]);
+        vector<real>* Ytmp = new vector<real>(Y.dims[1]);
         for (int j=0; j<X.dims[1]; j++) {
             (*Xtmp)[j] = X[ind(i,j)];
         }
         for (int j=0; j<Y.dims[1]; j++) {
             (*Ytmp)[j] = Y[ind(i,j)];
         }
-        Xv.push_back(const_cast<const vector<double>*>(Xtmp));
-        Yv.push_back(const_cast<const vector<double>*>(Ytmp));
+        Xv.push_back(const_cast<const vector<real>*>(Xtmp));
+        Yv.push_back(const_cast<const vector<real>*>(Ytmp));
     }
-    vector<double> weights(X.dims[0], 1.0), feature_costs;
+    vector<real> weights(X.dims[0], 1.0), feature_costs;
     vector<size_t> usable_features, required_features;
     
     inst->train(X.dims[1], Y.dims[1], 
@@ -147,13 +147,13 @@ void VRandomForest__wrap_train(VRandomForest *inst,
     }
 }
 
-pyarr<double> VRandomForest__wrap_predict(VRandomForest *inst, 
-                                            pyarr<double> X)
+pyarr<real> VRandomForest__wrap_predict(VRandomForest *inst, 
+                                            pyarr<real> X)
 {
     long int argh[] = {inst->getDimTarget()};
-    pyarr<double> ret(1, argh);
+    pyarr<real> ret(1, argh);
     
-    vector<double> xv(X.dims[0]), yv(ret.dims[0]);
+    vector<real> xv(X.dims[0]), yv(ret.dims[0]);
     for (int i=0; i<X.dims[0]; i++) {
         xv[i] = X[ind(i)];
     }
@@ -186,7 +186,7 @@ void boost_common()
     
 
     // long int dims[] = {10, 10, 10};
-    // pyarr<double> d(3, dims);
+    // pyarr<real> d(3, dims);
     // pyarr<float> f(3, dims);
     // pyarr<int> i(3, dims);
     // pyarr<long int> l(3, dims);
@@ -216,21 +216,21 @@ void boost_common()
     to_python_converter<LRgbImage, LRgbImage_to_numpy_str>();
     LRgbImage_from_numpy_str();
 
-    to_python_converter<vector<double>, vec_to_numpy_str>();
+    to_python_converter<vector<real>, vec_to_numpy_str>();
     vec_from_numpy_str();
 
     register_autogen_converters();
     register_common_converters();
 
-    class_<std::pair<unsigned int, double> >("uint_double_pair")
-        .def_readwrite("first", &std::pair<unsigned int, double>::first)
-        .def_readwrite("second", &std::pair<unsigned int, double>::second)
+    class_<std::pair<unsigned int, real> >("uint_real_pair")
+        .def_readwrite("first", &std::pair<unsigned int, real>::first)
+        .def_readwrite("second", &std::pair<unsigned int, real>::second)
         ;
-    class_<vector<std::pair<unsigned int, double> > >("uint_double_pair_vec")
-        .def(vector_indexing_suite<vector<std::pair<unsigned int, double> > >())
+    class_<vector<std::pair<unsigned int, real> > >("uint_real_pair_vec")
+        .def(vector_indexing_suite<vector<std::pair<unsigned int, real> > >())
         ;
-    class_<vector<vector<std::pair<unsigned int, double> > > >("uint_double_pair_vec_vec")
-        .def(vector_indexing_suite<vector<vector<std::pair<unsigned int, double> > > >())
+    class_<vector<vector<std::pair<unsigned int, real> > > >("uint_real_pair_vec_vec")
+        .def(vector_indexing_suite<vector<vector<std::pair<unsigned int, real> > > >())
         ;
     def("set_logger_verbosity", set_logger_verbosity);
 
@@ -265,7 +265,7 @@ void boost_ml()
         .def(vector_indexing_suite<vector<VRandomForest::VTreeNode> >())
         ;
 
-    class_<VRandomForest>("VRandomForest", init<int, int, int, double, double>())
+    class_<VRandomForest>("VRandomForest", init<int, int, int, real, real>())
         .def_readwrite("m_nbr_trees", &VRandomForest::m_nbr_trees)
         .def_readwrite("m_max_depth", &VRandomForest::m_max_depth)
         .def_readwrite("m_min_node_size", &VRandomForest::m_min_node_size)
@@ -281,7 +281,7 @@ void boost_ml()
     class_<vector<VRandomForest*> >("VRandomForest_vec")
         .def(vector_indexing_suite<vector<VRandomForest*> >())
         ;
-    class_<VBoostedMaxEnt>("VBoostedMaxEnt", init<double, double, double, int, VRandomForest>())
+    class_<VBoostedMaxEnt>("VBoostedMaxEnt", init<real, real, real, int, VRandomForest>())
         .def_readwrite("m_step_sizes", &VBoostedMaxEnt::m_step_sizes)
         .def_readwrite("m_dim", &VBoostedMaxEnt::m_dim)
         .def("get_vec_vrandomforest", VBoostedMaxEnt__get_vec_vrandomforest)

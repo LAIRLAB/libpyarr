@@ -10,6 +10,7 @@
 using std::vector;
 
 const int mxDOUBLE_CLASS = 1;
+const int mxSINGLE_CLASS = 2;
 const int mxREAL = 1;
 typedef int mwSize;
 
@@ -43,6 +44,9 @@ public:
       if (classID == mxDOUBLE_CLASS) {
           data = new char[_nelem * sizeof(double)];
           memset(data, 0, _nelem * sizeof(double)); 
+      } else if (classID == mxSINGLE_CLASS) {
+          data = new char[_nelem * sizeof(float)];
+          memset(data, 0, _nelem * sizeof(float)); 
       } else {
           data = NULL;
       }
@@ -69,6 +73,7 @@ public:
 double mxGetScalar(const mxArray * mxarray);
 void mxFree(mxArray ** mxarray);
 void mxFree(double * array);
+void mxFree(float * array);
 mxArray * mxCreateNumericArray(const int ndim, int const * dims, const int type, const int fake);
 mxArray * mxCreateDoubleScalar(double val);
 

@@ -37,6 +37,10 @@ void mxFree(double * array)
 {
   delete [] array;
 }
+void mxFree(float * array)
+{
+  delete [] array;
+}
 
 mxArray *mxCreateNumericArray(const int ndim, const int * dims, const int classID, const int fake)
 {
@@ -90,9 +94,10 @@ mxArray::~mxArray() {
 
 mxArray * mxArray::clone() {
     mxArray * result;
-    result = mxCreateNumericArray(this->NDim, this->Dims, mxDOUBLE_CLASS, mxREAL);
+    result = mxCreateNumericArray(this->NDim, this->Dims, this->classID, mxREAL);
 
-    memcpy(result->data, this->data, sizeof(double) * this->_nelem);
+    size_t s = (classID == mxDOUBLE_CLASS) ? sizeof(double) : sizeof(float);
+    memcpy(result->data, this->data, s * this->_nelem);
     return result;
 }
 
@@ -107,14 +112,25 @@ mxArray & mxArray::operator+=(const mxArray & rhs)
             *(ptrLHS++) += *(ptrRHS++);
         }
     }
+    if (classID == mxSINGLE_CLASS && rhs.classID == mxSINGLE_CLASS)
+    {
+        float * ptrLHS = (float*)this->data;
+        float * ptrRHS = (float*)rhs.data;
+        for (int i = 0; i < this->_nelem; i++)
+        {
+            *(ptrLHS++) += *(ptrRHS++);
+        }
+    }
     return *this;
 }
 
 const mxArray mxArray::operator+(const mxArray & rhs)
 {
     mxArray * result;
-    result = mxCreateNumericArray(this->NDim, this->Dims, mxDOUBLE_CLASS, mxREAL);
-    memcpy(result->data, this->data, sizeof(double) * this->_nelem);
+    result = mxCreateNumericArray(this->NDim, this->Dims, this->classID, mxREAL);
+    
+    size_t s = (classID == mxDOUBLE_CLASS) ? sizeof(double) : sizeof(float);
+    memcpy(result->data, this->data, s * this->_nelem);
     (*result) += rhs;
     return (*result);
 }
@@ -124,6 +140,12 @@ mxArray & mxArray::operator+=(const double & rhs)
     if (classID == mxDOUBLE_CLASS)
     {
         double * ptrLHS = (double*)this->data;
+        for (int i = 0; i < this->_nelem; i++)
+            *(ptrLHS++) += rhs;
+    }
+    else if (classID == mxSINGLE_CLASS)
+    {
+        float * ptrLHS = (float*)this->data;
         for (int i = 0; i < this->_nelem; i++)
             *(ptrLHS++) += rhs;
     }
@@ -147,6 +169,13 @@ mxArray operator-(const mxArray & op)
         double * ptrOpR = (double*)op.data;
         for (int i = 0; i < op._nelem; i++) *(ptrOpL++) = -*(ptrOpR++);
     }
+    if (op.classID == mxSINGLE_CLASS)
+    {
+        res = mxCreateNumericArray(op.NDim, op.Dims, mxSINGLE_CLASS, mxREAL);
+        float * ptrOpL = (float*)res->data;
+        float * ptrOpR = (float*)op.data;
+        for (int i = 0; i < op._nelem; i++) *(ptrOpL++) = -*(ptrOpR++);
+    }
     return (*res);
 }
 
@@ -161,13 +190,22 @@ void mxArray::negative()
             ptr++;
         }
     }
+    else if (this->classID == mxSINGLE_CLASS)
+    {
+        float * ptr = (float*)this->data;
+        for (int i = 0; i < this->_nelem; i++)
+        {
+            *ptr = - *ptr;
+            ptr++;
+        }
+    }
 }
 
 double mxArray::get(vector<int> &subscript, double & retval)
 { 
     if (subscript.size() != this->NDim)
         return -1;
-    if (this->classID != mxDOUBLE_CLASS)
+    if (this->classID != mxDOUBLE_CLASS && this->classID != mxSINGLE_CLASS)
         return -2;
     unsigned int offset = 0;
     unsigned int block = 1;
@@ -176,35 +214,65 @@ double mxArray::get(vector<int> &subscript, double & retval)
         offset += subscript[j] * block;
         block *= this->Dims[j];
     }
-    retval = (((double*)this->data))[offset];
+    if (this->classID == mxDOUBLE_CLASS)
+        retval = (((double*)this->data))[offset];
+    else if (this->classID == mxSINGLE_CLASS) 
+        retval = (((float*)this->data))[offset];
     return retval;
 }
 
 double mxArray::get2D(int row, int col, double & retval) const
 { 
-    retval = (((double*)this->data))[col * Dims[0] + row];
+    if (classID == mxDOUBLE_CLASS) {
+        retval = (((double*)this->data))[col * Dims[0] + row];
+    } else if (classID == mxSINGLE_CLASS) {
+        retval = (((float*)this->data))[col * Dims[0] + row];
+    }
     return retval;
 }
 
 void mxArray::set2D(int row, int col, double val)
 {
-    (((double*)this->data))[col*Dims[0]+row] = val;
+    if (classID == mxDOUBLE_CLASS) {
+        (((double*)this->data))[col*Dims[0]+row] = val;
+    } else if (classID == mxSINGLE_CLASS) {
+        (((float*)this->data))[col*Dims[0]+row] = val;
+    }    
 }
 
 double mxArray::get3D(int subidx1, int subidx2, int subidx3, double &retval) const
 { 
-    retval = (((double*)this->data))[subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1]];
-    return retval;
+    if (classID == mxDOUBLE_CLASS) {
+        retval = (((double*)this->data))[subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1]];
+        return retval;
+    }
+    else {
+        printf("OH NO! mxSINGLE INCOMPLETE SUPPORT\n");
+        return -1;
+    }
 }
 
 void mxArray::set3D(int subidx1, int subidx2, int subidx3, double val)
 {
-    (((double*)this->data))[subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1]] = val;
+    if (classID == mxDOUBLE_CLASS) {
+        (((double*)this->data))[subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1]] = val;
+    }
+    else {
+        printf("OH NO! mxSINGLE INCOMPLETE SUPPORT\n");
+    }
+
+
 }
 
 double * mxArray::getPtr3D(int subidx1, int subidx2, int subidx3)
 {
-    return (((double*)this->data)) + subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1];
+    if (classID == mxDOUBLE_CLASS) {
+        return (((double*)this->data)) + subidx1 + subidx2 * Dims[0] + subidx3 * Dims[0] * Dims[1];
+    }
+    else {
+        printf("OH NO! mxSINGLE INCOMPLETE SUPPORT\n");
+        return NULL;
+    }
 }
 
 int size(const mxArray * mxarray, int k) 

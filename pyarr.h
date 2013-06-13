@@ -189,7 +189,7 @@ class pyarr {
 
     pyarr<T> copy() {
         //printf("pyarr actual copy\n");
-        pyarr<double> the_copy(ao->nd, ao->dimensions);
+        pyarr<T> the_copy(ao->nd, ao->dimensions);
         long int actual_len = 1;
         for (int i=0; i<ao->nd; i++) {
             actual_len *= dims[i];

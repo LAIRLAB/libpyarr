@@ -42,7 +42,7 @@ using misc_util::Matrix;
 using misc_util::MatrixMap;
 
 MatrixMap numpy_to_matrixmap(PyObject *o);
-PyObject *vecvec_to_numpy(const vector<const vector<double> *> v);
+PyObject *vecvec_to_numpy(const vector<const vector<real> *> v);
 PyObject *matrixmap_to_numpy(MatrixMap &m);
 PyObject* matrixuint_to_numpy(Matrix<unsigned int> &m);
 //PyObject* mxarray2d_to_numpy(mxArray* arr);
@@ -56,7 +56,7 @@ void fill_vec_with_resps(vector<shared_ptr<const f2d::Pixel2DData> >& vec_pix_da
 
 
 
-vector<double> numpy_to_vec(PyObject *o);
-PyObject* vec_to_numpy(vector<double> v);
+vector<real> numpy_to_vec(PyObject *o);
+PyObject* vec_to_numpy(vector<real> v);
 
 #endif /* _BOILERPLATE_H */
