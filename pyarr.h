@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 #include <numpy/arrayobject.h>
+#include <sstream>
+#include <stdexcept>
+#include <typedef.h>
+#include <iostream>
 
 using std::vector;
 using std::string;
@@ -14,7 +18,7 @@ using std::ostringstream;
 using std::cerr;
 using std::endl;
 
-int npy_real_type() {
+static int npy_real_type() {
     return (sizeof(real) == sizeof(double)) ? NPY_FLOAT64 : NPY_FLOAT32;
 }
 
