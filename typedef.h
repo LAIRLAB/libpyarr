@@ -1,2 +1,2 @@
-typedef float real;
+typedef double real;
 

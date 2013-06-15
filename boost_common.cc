@@ -181,7 +181,7 @@ static bool boosted_common = false;
 void boost_common() 
 {
     import_array();
-    if (boosted_common) return; 
+    if (0 && boosted_common) return; 
     boosted_common = true;
     
 

@@ -217,13 +217,13 @@ class pyarr {
         }
         for (int d=0; d<idx.nd; d++) {
             long int this_idx = idx.inds[d];
+            if (this_idx >= dims[d]) {
+                ostringstream ss("pyarr::actual_idx out of bounds ", std::ios_base::ate);
+                ss << "dim " << d << " max: " << dims[d] << ", requested: " << this_idx;
+                cerr << ss.str();
+                throw std::runtime_error(ss.str());
+            }
             for (int e=d+1; e<idx.nd; e++) {
-		if (this_idx >= dims[d]) {
-		    ostringstream ss("pyarr::actual_idx out of bounds ", std::ios_base::ate);
-		    ss << "dim " << d << " max: " << dims[d] << ", requested: " << this_idx;
-		    cerr << ss.str();
-		    throw std::runtime_error(ss.str());
-		}
                 this_idx *= dims[e];
             }
             final_idx += this_idx; 
