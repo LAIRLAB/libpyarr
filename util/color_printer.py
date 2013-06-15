@@ -142,14 +142,21 @@ class ColorPrinter(object):
     verbosity = property(get_verbosity, set_verbosity)
 
     def add_log_level_methods(self):
-        import type_util
-
         def build_log_level_method(log_type):
-            return lambda self, string: self.log(string, log_type, modname = inspect.getmodule(inspect.stack()[1][0]).__name__)
+            return lambda self, string: self.log(string, 
+                                                 log_type, 
+                                                 modname = inspect.getmodule(inspect.stack()[1][0]).__name__)
+
+        # this used to import type_util, but circular dependencies + macropy + boost python + typedef float real
+        # = segfault on import
+        def add_method(self, method, name=None):
+            if name is None:
+                name = method.func_name
+            setattr(self.__class__, name, method)
 
         for log_type in self.log_ordering:
             if log_type not in dir(self):
-                type_util.add_method(self, build_log_level_method(log_type), log_type)
+                add_method(self, build_log_level_method(log_type), log_type)
 
     def log(self, s, log_type = 'info', newline=True, color_code=None, modname = ''):
         stamp = time.strftime('%m-%d|%H:%M:%S')
