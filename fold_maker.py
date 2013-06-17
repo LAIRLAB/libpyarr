@@ -72,6 +72,9 @@ def main():
 
     cpm.gcp.verbosity = args.verbosity
 
+    assert(args.split_ratio >= 0 and args.split_ratio <= 1)
+    assert(args.unsupervised_ratio >= 0 and args.unsupervised_ratio <= 1)
+
     unsup_ratio = None if not args.unsupervised_split else args.unsupervised_ratio
     if unsup_ratio is not None:
         assert(args.split_ratio <= args.unsupervised_ratio)
