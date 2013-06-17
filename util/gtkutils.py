@@ -207,7 +207,7 @@ class box_n_overlay_widget(cairo_drawingarea):
 
                     if(true_conf < self.min_true_thresh):
                         continue
-
+                        
                     cc.set_source_rgb(*boxstruct.rgb)
                     cc.rectangle(box.x, box.y, 
                                  box.width, box.height)
