@@ -126,6 +126,8 @@ class ColorPrinter(object):
         self.std_snagged = False
         if logfile is None:
             self.logfile_fn = 'tmplog.txt'
+            if os.path.isfile(self.logfile_fn):
+                os.remove(self.logfile_fn)
         else:
             self.logfile_fn = logfile
         self.cleanup = False
