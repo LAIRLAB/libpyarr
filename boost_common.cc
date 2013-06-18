@@ -8,7 +8,10 @@ using std::vector;
 
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
                                 pyarr<real> X_train, 
-                                pyarr<real> Y_train)
+                                pyarr<real> Y_train, 
+                                bool do_weights, 
+                                real pos_weight, 
+                                real neg_weight)
 {
     if (X_train.dims[0] != Y_train.dims[0]) {
         printf("oh no, X train has %zu entries but Y train has %zu\n",
@@ -29,6 +32,38 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
         Yvec.push_back(const_cast<const vector<real>*>(tmp));
     }
     vector<real> w_fold(Xvec.size(), 1.0);
+
+    if (do_weights) {
+        
+        real pos_weight, neg_weight;
+        if (0) {
+            real n_pos=0, n_neg=0;
+            for (int i=0; i<X_train.dims[0]; i++) {
+                n_neg += Y_train[ind(i, 0)];
+                for (int j=1; j<Y_train.dims[1]; j++) {
+                    n_pos += Y_train[ind(i,j)];
+                }
+            }
+            real ratio = n_neg / n_pos;
+            real total_neg_weight = n_neg;
+            real total_pos_weight = total_neg_weight / 5.0;
+            neg_weight = 1.0;
+            pos_weight = total_pos_weight / n_pos;
+        } 
+        else {
+            neg_weight = 1.0;
+            pos_weight = 5.0;
+        }
+           
+        for (int i=0; i<X_train.dims[0]; i++) {
+            if (Y_train[ind(i,0)] > 0) {
+                w_fold[i] = neg_weight;
+            } else {
+                w_fold[i] = pos_weight;
+            }
+        }
+    }
+    
     inst->train(Xvec, Yvec, w_fold, NULL, NULL);
 
     for (int i=0; i<X_train.dims[0]; i++) {
