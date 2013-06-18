@@ -46,6 +46,27 @@ PyObject* VBoostedMaxEnt__wrap_predict(VBoostedMaxEnt* inst,
     return vec_to_numpy(ret);
 }
 
+pyarr<double> VBoostedMaxEnt__batch_predict(VBoostedMaxEnt* inst, 
+                                            pyarr<double> queries)
+{
+    long int argh[] = {queries.dims[0], inst->m_nbr_labels};
+    pyarr<double> ret(2, argh);
+    vector<double> tmp_ret(inst->m_nbr_labels);
+    vector<double> query(queries.dims[1]);
+
+    for (int i=0; i<queries.dims[0]; i++) {
+        for (int j=0; j<queries.dims[1]; j++) {
+            query[j] = queries[ind(i, j)];
+        }
+
+        inst->predict(query, tmp_ret);
+
+        for (int j=0; j<inst->m_nbr_labels; j++) {
+            ret[ind(i, j)] = tmp_ret[j];
+        }
+    }
+    return ret;
+}
 
 
 vector<VRandomForest*> VBoostedMaxEnt__get_vec_vrandomforest(VBoostedMaxEnt* inst)
@@ -266,6 +287,7 @@ void boost_ml()
         .def("get_vec_vrandomforest", VBoostedMaxEnt__get_vec_vrandomforest)
         .def("train", VBoostedMaxEnt__wrap_train)
         .def("predict", VBoostedMaxEnt__wrap_predict)
+        .def("batch_predict", VBoostedMaxEnt__batch_predict)
         .def("save", &VBoostedMaxEnt::save)
         .def("load", &VBoostedMaxEnt::load)
         ;
