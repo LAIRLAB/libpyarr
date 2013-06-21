@@ -129,7 +129,12 @@ def load_integer_map(prefix):
                 return a
         except IOError:
             s = "No integer map {}(.npz, .txt) found".format(prefix)
-            raise IOError(s)
+            try:
+                with open(prefix + '.regions.txt') as f:
+                    a = numpy.genfromtxt(f, dtype=ta2_globals.ground_truth_dtype)
+                    return a
+            except IOError:
+                raise IOError(s)
 
 def require_existence(f, quiet=False):
     if isinstance(f,list):

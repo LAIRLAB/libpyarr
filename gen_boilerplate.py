@@ -33,7 +33,8 @@ def gen_everything():
             vec_decl('double_vec'), 
             vec_decl('double_vec_vec'), 
             vec_decl('uint', 'unsigned int'),
-            vec_decl('ulong', 'unsigned long')]
+            vec_decl('ulong', 'unsigned long'),
+            vec_decl('uint_vec')]
 
     things = [pyarr_converter('int', 'NPY_INT32'),
               pyarr_converter('unsigned int', 'NPY_UINT32'),
