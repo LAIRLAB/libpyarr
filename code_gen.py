@@ -21,129 +21,6 @@ def gensym():
     ret = '_G' + `_gensym_ctr`
     _gensym_ctr += 1
     return ret
-
-def pair_decl(t1, t2, n_vecs = 1):
-    return tpl_decl('pair', [t1, t2], [], [['first', [0, 1], '_readwrite'],
-                                           ['second', [0, 1], '_readwrite']],
-                    no_class_decl = True,
-                    n_vecs = n_vecs)
-
-
-
-class old_tpl_decl(object):
-    def __init__(self, 
-                 cpp_name, 
-                 template_params,
-                 method_names, 
-                 field_names, 
-                 init_args = None, 
-                 namespace = 'std', 
-                 no_class_decl = False, 
-                 n_vecs = 1):
-        self.cpp_name = cpp_name
-        self.template_params = template_params
-        self.method_names = method_names
-        self.field_names = field_names
-        self.t_str = ', '.join(self.template_params)
-        self.python_name = '{}_tpl_{}'.format(self.cpp_name, 
-                                              self.t_str.replace(', ', '_'))
-        self.init_args = init_args
-        self.namespace = namespace
-        self.no_class_decl = no_class_decl
-        self.n_vecs = n_vecs
-
-        if self.namespace is not None:
-            self.ns_str = '{}::'.format(self.namespace)
-        else:
-            self.ns_str = ''
-
-        self.reg_tpl_str = '{}{}<{}> '.format(self.ns_str, self.cpp_name, self.t_str)
-
-        self.vecs = []
-        if self.n_vecs > 0:
-            self.vecs.append(vec_decl(self.python_name, self.reg_tpl_str))
-        for i in range(1, n_vecs):
-            self.vecs.append(vec_decl(self.vecs[-1].python_name, 
-                                      self.vecs[-1].cpp_name))
-
-    def gen(self):
-        o = gensym()
-        ret = ''
-        if not self.no_class_decl:
-            tn_str = 'typename {},'.format(self.template_params[0])
-            tn_str += 'typename {},'.join(self.template_params[1:])
-            ret = 'template<{}>\nclass {}{{\n'.format(tn_str, 
-                                                  self.cpp_name)
-                                     
-            ret += 'public:\n'
-            ret += 'bool operator==(const {} &{}) {{'.format(self.cpp_name, o)
-            ret += ' return ( '
-        
-            for (i, (f, tpl_idx, decl_type)) in enumerate(self.field_names):
-                ret += '{0} == {1}.{0}'.format(f, o)
-                if i < len(self.field_names)-1:
-                    ret += ' &&\n '
-                else:
-                    ret += ');\n}\n'
-                
-            ret += '};\n\n'
-        
-        for v in self.vecs:
-            ret += v.gen()
-        return ret
-
-    def gen_reg(self):
-        ret = '\nclass_<{}>("{}", '.format(self.reg_tpl_str,
-                                           self.python_name)
-        if self.init_args is None:
-            ret += 'no_init'
-        else:
-            ret += 'init<'
-            if len(self.init_args) > 0:
-                for i in self.init_args[:-1]:
-                    ret += i + ', '
-                ret += self.init_args[-1]
-            ret += '>()'
-        ret += ')\n'
-
-        
-        
-        for m in self.method_names:
-            if isinstance(m, list):
-                name = m[0]
-                
-                if 'ext' in m[1:]:
-                    ret += '.def("{}", {}__{}'.format(name, self.cpp_name, 
-                                                      name)
-                else:
-                    ret += '.def("{}", &{}{}::{}'.format(name, self.ns_str, self.cpp_name, name)
-
-                if 'reo' in m[1:]:
-                    ret += ', return_value_policy<reference_existing_object>()'
-                elif 'mno' in m[1:]:
-                    ret += ', return_value_policy<manage_new_object>()'
-
-                ret += ')\n'
-
-            else:
-                ret += '.def("{}", &{}{}::{})\n'.format(m, self.cpp_name, self.ns_str, m)
-
-        
-        for (f, tpl_idx, decl_type) in self.field_names:
-            ret += '.def{}("{}", &{}{}<{}>::{})\n'.format(decl_type, 
-                                                          f,
-                                                          self.ns_str,
-                                                          self.cpp_name,
-                                                          self.t_str,
-                                                          f)
-        ret += ';\n'
-
-
-        for v in self.vecs:
-            ret += v.gen_reg()
-
-        return ret
-
              
 class tpl_decl(object):
     def __init__(self, 
@@ -230,7 +107,7 @@ class tpl_decl(object):
             cpp_name = self.pre_cpp_name + '<' + reduce(lambda x,y: x+', '+y, tpl_args) + '>'
         else:
             cpp_name = self.pre_cpp_name
-        python_name = cpp_name.split(':')[-1].replace('<', '_').replace('>', '_')
+        python_name = sanitize(cpp_name.split(':')[-1])#.replace('<', '_').replace('>', '_')
 
         the_init_args = []
         for argtype in self.init_args:
@@ -268,16 +145,16 @@ class tpl_decl(object):
 
         ret = 'class_<'
         ret += cpp_name
-        ret += '>("{}",'.format(python_name)
+        ret += ' >("{}",'.format(python_name)
 
         if self.init_args is None:
             ret += 'no_init'
         else:
             ret += 'init<'
-            if len(self.init_args) > 0:
-                for i in self.init_args[:-1]:
+            if len(init_args) > 0:
+                for i in init_args[:-1]:
                     ret += i + ', '
-                ret += self.init_args[-1]
+                ret += init_args[-1]
             ret += '>()'
         ret += ')\n'
 
@@ -332,7 +209,7 @@ class inst_td(object):
 
     def gen(self):
         ret = self.decl.gen_clsdecl()
-        ret += self.decl.gen(self.args)
+        ret += self.decl.gen(self.args, n_vecs=self.n_vecs)
         return ret
 
     def gen_reg(self):

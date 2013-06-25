@@ -20,7 +20,9 @@
 #include <memory>
 #include <tr1/memory>
 #include <using_std.h>
+#include <typedef.h>
 #include <autogen.h>
 
+void boost_him();
 void boost_common();
 void boost_ml();
