@@ -30,6 +30,6 @@
 using namespace ml;
 
 
-
+void boost_him();
 void boost_common();
 void boost_ml();

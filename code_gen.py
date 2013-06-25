@@ -20,7 +20,8 @@ def pair_decl(t1, t2, n_vecs = 1):
     return tpl_decl('pair', [t1, t2], [], [['first', [0, 1], '_readwrite'],
                                            ['second', [0, 1], '_readwrite']],
                     no_class_decl = True,
-                    n_vecs = n_vecs)
+                    n_vecs = n_vecs,
+                    init_args = [t1, t2])
 
 class tpl_decl(object):
     def __init__(self, cpp_name, template_params, method_names, field_names, init_args = None, namespace = 'std', no_class_decl = False, n_vecs = 1):
