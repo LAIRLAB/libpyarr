@@ -7,7 +7,7 @@
 #endif
 
 #include "boilerplate.h"
-#include <infer_machine/distribution_map.h>
+/*#include <infer_machine/distribution_map.h>
 #include <infer_machine/hier_infer_machine.h>
 
 //#include <dataset_2d/outdoor_2d.h>
@@ -19,10 +19,9 @@
 #include <pclassifier/boosted_maxent.h>
 
 #include "voc_felz_features.h"
+*/
+#include <mymex.h>
 #include <pyarr.h>
-
-using namespace im;
-using namespace ml;
 
 bool numpy_satisfy_properties(PyArrayObject *ao, 
                               int nd, 
@@ -397,6 +396,67 @@ struct LRgbImage_to_numpy_str {
             for (int j=0; j<dims[1];j++) {
                 for (int k=0; k<dims[2]; k++) {
                     ((unsigned char*)retval->data)[i*dims[1]*dims[2] + 
+                                                   j*dims[2] + 
+                                                   k] = m(j, i, k);
+                }
+            }
+        }
+        
+        return (PyObject*)retval;
+    }
+};
+struct LLabImage_from_numpy_str {
+    static void* convertible(PyObject *o)
+    {
+        PyArrayObject *ao = (PyArrayObject*)o; 
+        
+        if (!numpy_satisfy_properties(ao, 3, NULL, npy_real_type(), true))
+            return 0;
+
+        return (void*)o;
+    }
+
+    static void construct(PyObject *o,
+                          converter::rvalue_from_python_stage1_data* data)
+    {
+        void* storage = ((converter::rvalue_from_python_storage<LLabImage>*)data)->storage.bytes;
+        PyArrayObject *ao = (PyArrayObject*)o;        
+
+        new (storage) LLabImage(int(ao->dimensions[1]), 
+                                int(ao->dimensions[0]));
+        LLabImage* lrgb = (LLabImage*)storage;
+
+        data->convertible = storage;
+
+        for (int i=0; i<ao->dimensions[0]; i++) {
+            for (int j=0; j<ao->dimensions[1]; j++) {
+                for (int k=0; k<ao->dimensions[2]; k++) {
+                    (*lrgb)(j, i, k) = ((real*)ao->data)[i*ao->dimensions[1]*ao->dimensions[2] + 
+                                                         j*ao->dimensions[2] +
+                                                         k];
+                }
+            }
+        }
+    }
+
+    LLabImage_from_numpy_str() 
+    {
+        converter::registry::push_back(&convertible, 
+                                       &construct, 
+                                       type_id<LLabImage>());
+    }
+};
+
+struct LLabImage_to_numpy_str {
+    static PyObject *convert(const LLabImage &m) {
+        npy_intp dims[] = {m.GetHeight(), m.GetWidth(), 3};
+        
+        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
+
+        for (int i=0; i<dims[0]; i++) {
+            for (int j=0; j<dims[1];j++) {
+                for (int k=0; k<dims[2]; k++) {
+                    ((real*)retval->data)[i*dims[1]*dims[2] + 
                                                    j*dims[2] + 
                                                    k] = m(j, i, k);
                 }

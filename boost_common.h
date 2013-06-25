@@ -19,17 +19,8 @@
 #include <fstream>
 #include <memory>
 #include <tr1/memory>
-
-#include <boilerplate.h>
-#include <v_regressor/v_random_forest.h>
-#include <pclassifier/boosted_maxent.h>
+#include <using_std.h>
 #include <autogen.h>
-
-#include <pyarr.h>
-
-using namespace ml;
-
-
 
 void boost_common();
 void boost_ml();

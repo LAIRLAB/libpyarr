@@ -62,7 +62,7 @@ void register_autogen_converters() {
 
     write_if_changed(s, conv_file)
 
-    s = ""
+    s = "#pragma once\n"
     for c in classes:
         s += c.gen()
 

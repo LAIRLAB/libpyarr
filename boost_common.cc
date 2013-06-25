@@ -1,10 +1,19 @@
 #include <boost_common.h>
+#include <boilerplate.h>
+#include <v_regressor/v_random_forest.h>
+#include <pclassifier/boosted_maxent.h>
+
+#include <pyarr.h>
+
 #include <boilerplate.cpp>
+
 #include <autogen_converters.cpp>
 #include <to_python_converters.cc>
 
+
 using std::string;
 using std::vector;
+using namespace ml;
 
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
                                 pyarr<real> X_train, 
@@ -250,6 +259,9 @@ void boost_common()
 
     to_python_converter<LRgbImage, LRgbImage_to_numpy_str>();
     LRgbImage_from_numpy_str();
+
+    to_python_converter<LLabImage, LLabImage_to_numpy_str>();
+    LLabImage_from_numpy_str();
 
     to_python_converter<vector<real>, vec_to_numpy_str>();
     vec_from_numpy_str();
