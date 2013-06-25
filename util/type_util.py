@@ -1,4 +1,4 @@
-import os,sys
+import os, sys, inspect
 
 try:
     from util import color_printer as cp
@@ -19,3 +19,8 @@ def add_method(self, method, name=None):
     if name is None:
         name = method.func_name
     setattr(self.__class__, name, method)
+
+
+def get_registered_classes():
+    clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+    return clsmembers

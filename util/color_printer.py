@@ -126,8 +126,11 @@ class ColorPrinter(object):
         self.std_snagged = False
         if logfile is None:
             self.logfile_fn = 'tmplog.txt'
+            if os.path.isfile(self.logfile_fn):
+                os.remove(self.logfile_fn)
         else:
             self.logfile_fn = logfile
+        self.cleanup = False
 
     def set_verbosity(self, v):
         try:
@@ -229,6 +232,11 @@ class ColorPrinter(object):
         if self.std_snagged:
             self.tee.terminate()
         self.std_snagged = False
+
+    def __del__(self):
+        if self.cleanup:
+            if os.path.isfile(self.logfile_fn):
+                os.remove(self.logfile_fn)
 
 #    def __del__(self):
 #        os.dup2(sys.stdout.fileno(), self.tee.stdin.fileno())

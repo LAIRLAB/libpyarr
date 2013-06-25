@@ -8,7 +8,7 @@ def r8bn():
     return random_8bit_number()
 
 def random_8bit_rgb():
-    return r8bn(),r8bn(),r8bn()    
+    return [r8bn(),r8bn(),r8bn()]
 
 def random_ascii_string(length):
     length = int(length)

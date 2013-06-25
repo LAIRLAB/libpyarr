@@ -552,6 +552,14 @@ def gtkbutton(name, cb):
     
     return b
 
+def gtkarrow(name, t, cb):
+    b = gtk.Button()
+    a = gtk.Arrow(t, gtk.SHADOW_IN)
+    a.show()
+    b.connect('clicked', pdbwrap(cb), 'hi.')
+    b.add(a)
+    return b
+
 def gtktogglebutton(name, cb):
     b = gtk.ToggleButton(name)
     def wrap_cb(button, *args):

@@ -41,7 +41,6 @@ class FoldMaker(object):
             for (c, b) in enumerate(basenames):
                 if c < num_train:
                     self.data[(f, 'train')].append(b)
-                    self.data[(f, 'uns_train')].append(b)                    
                 elif unsup_ratio is not None and c < num_unsup:
                     self.data[(f, 'uns_train')].append(b)                    
                 else:

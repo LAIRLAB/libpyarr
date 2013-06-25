@@ -118,6 +118,7 @@ def verify_basenames(basenames, im_dir, gt_dir):
 #load txt file from .txt or .npz
 def load_integer_map(prefix):
     import numpy
+    s = "No integer map {}(.npz, .txt) found".format(prefix)
     try:
         with open(prefix + '.npz') as f:
             a = numpy.load(f)['arr_0']
@@ -128,8 +129,16 @@ def load_integer_map(prefix):
                 a = numpy.genfromtxt(f, dtype=ta2_globals.ground_truth_dtype)
                 return a
         except IOError:
-            s = "No integer map {}(.npz, .txt) found".format(prefix)
-            raise IOError(s)
+            try:
+                with open(prefix + '.regions.txt') as f:
+                    a = numpy.genfromtxt(f, dtype=ta2_globals.ground_truth_dtype)
+                    return a
+            except IOError:
+                try:
+                    with open(prefix) as f:
+                        return numpy.genfromtxt(f, dtype = ta2_globals.ground_truth_dtype)
+                except IOError:                    
+                    raise IOError(s)
 
 def require_existence(f, quiet=False):
     if isinstance(f,list):
