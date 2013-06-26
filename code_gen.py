@@ -134,6 +134,8 @@ class tpl_decl(object):
             vecs.append(vec_decl(vecs[-1].python_name, 
                                  vecs[-1].cpp_name))
 
+        print "making %d vecs for %s"%(n_vecs, python_name)
+
         ret = ''
         for v in vecs:
             ret += v.gen()
@@ -278,6 +280,7 @@ class vec_decl(object):
 def gen_vec_reg():
     ret = ''
     for k in vec_reg.keys():
+        print "making vec reg for",k
         ret += vec_reg[k].gen_reg()
     return ret
 
