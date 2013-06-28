@@ -235,7 +235,7 @@ class cls_decl(inst_td):
 
 def sanitize(cpp_type):
     return cpp_type.replace(' ', '_') \
-                   .replace('>', '_') \
+                   .replace('>', '') \
                    .replace('<', '_') \
                    .replace('::', '').replace(', ', '').replace(',', '')
 

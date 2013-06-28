@@ -41,6 +41,7 @@ def gen_everything():
                inst_td(pair_tpl, ['unsigned long', 'unsigned long'])]
 
     vecs = [vec_decl('size_t'),
+            vec_decl('size_t_vec'),
             vec_decl('double'), 
             vec_decl('double_vec'), 
             vec_decl('double_vec_vec'), 
