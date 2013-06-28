@@ -467,6 +467,69 @@ struct LLabImage_to_numpy_str {
     }
 };
 
+struct LColourImage_from_numpy_str {
+    static void* convertible(PyObject *o)
+    {
+        PyArrayObject *ao = (PyArrayObject*)o; 
+        
+        if (!numpy_satisfy_properties(ao, 3, NULL, NPY_UINT8, true))
+            return 0;
+
+        return (void*)o;
+    }
+
+    static void construct(PyObject *o,
+                          converter::rvalue_from_python_stage1_data* data)
+    {
+        void* storage = ((converter::rvalue_from_python_storage<LColourImage<unsigned char> >*)data)->storage.bytes;
+        PyArrayObject *ao = (PyArrayObject*)o;        
+
+        new (storage) LColourImage<unsigned char>(int(ao->dimensions[1]), 
+						  int(ao->dimensions[0]), 
+						  3);
+        LColourImage<unsigned char>* lrgb = (LColourImage<unsigned char>*)storage;
+
+        data->convertible = storage;
+
+        for (int i=0; i<ao->dimensions[0]; i++) {
+            for (int j=0; j<ao->dimensions[1]; j++) {
+                for (int k=0; k<ao->dimensions[2]; k++) {
+                    (*lrgb)(j, i, k) = ((unsigned char*)ao->data)[i*ao->dimensions[1]*ao->dimensions[2] + 
+                                                                  j*ao->dimensions[2] +
+                                                                  k];
+                }
+            }
+        }
+    }
+
+    LColourImage_from_numpy_str() 
+    {
+        converter::registry::push_back(&convertible, 
+                                       &construct, 
+                                       type_id<LColourImage<unsigned char> >());
+    }
+};
+
+struct LColourImage_to_numpy_str {
+    static PyObject *convert(const LColourImage<unsigned char> &m) {
+        npy_intp dims[] = {m.GetHeight(), m.GetWidth(), 3};
+        
+        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
+
+        for (int i=0; i<dims[0]; i++) {
+            for (int j=0; j<dims[1];j++) {
+                for (int k=0; k<dims[2]; k++) {
+                    ((real*)retval->data)[i*dims[1]*dims[2] + 
+                                                   j*dims[2] + 
+                                                   k] = m(j, i, k);
+                }
+            }
+        }
+        
+        return (PyObject*)retval;
+    }
+};
+
 
 
 struct vec_from_numpy_str {
