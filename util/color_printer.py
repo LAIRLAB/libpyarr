@@ -248,6 +248,7 @@ gcp = ColorPrinter('info')
 #don't let spelling mistakes get you down
 gpc = gcp
 
+
 def on(color_code):
     try:
         start_color = "\033[1;{}m".format(color_code_switch(color_code))
