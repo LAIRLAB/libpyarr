@@ -242,7 +242,6 @@ void boost_him()
     to_python_converter<LColourImage<unsigned char>, LColourImage_to_numpy_str>();
     LColourImage_from_numpy_str();
     
-
 }
 
 void boost_common() 
