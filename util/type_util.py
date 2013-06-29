@@ -1,4 +1,4 @@
-import os, sys, inspect
+import os, sys, inspect, pdb
 
 try:
     from util import color_printer as cp
@@ -21,6 +21,11 @@ def add_method(self, method, name=None):
     setattr(self.__class__, name, method)
 
 
-def get_registered_classes():
-    clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-    return clsmembers
+def get_registered_classes(name = __name__):
+    return inspect.getmembers(sys.modules[name], inspect.isclass)
+
+# def registered_classes():
+#     print inspect.stack()[-1].__name__
+#     print "module : {}".format(inspect.getmodule(inspect.stack()[-1]))
+    
+#     return inspect.getmembers(inspect.getmodule(inspect.stack()[-1]), inspect.isclass)

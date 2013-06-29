@@ -289,7 +289,7 @@ struct LRgbImage_from_numpy_str {
         PyArrayObject *ao = (PyArrayObject*)o; 
         
         if (!numpy_satisfy_properties(ao, 3, NULL, NPY_UINT8, true))
-            return 0;
+	    return 0;
 
         return (void*)o;
     }
