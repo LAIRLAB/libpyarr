@@ -13,3 +13,11 @@ def get_user_at_host():
 
 def guah():
     return get_user_at_host()
+
+def cycle_up(number, obj):
+    number = (number + 1) % len(obj)
+    return number
+
+def cycle_down(number, obj):
+    number = len(obj) - 1 if number == 0 else number - 1
+    return number
