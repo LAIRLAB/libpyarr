@@ -230,9 +230,6 @@ void boost_him()
     to_python_converter<d2d::SegmentMap, SegmentMap_to_numpy_str>();
     SegmentMap_from_numpy_str();
 
-    to_python_converter<f2d::Pixel2DData, Pixel2DData_to_numpy_str>();
-    Pixel2DData_from_numpy_str();
-
     to_python_converter<LRgbImage, LRgbImage_to_numpy_str>();
     LRgbImage_from_numpy_str();
 

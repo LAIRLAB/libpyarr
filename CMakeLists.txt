@@ -23,5 +23,5 @@ target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES}
                                    data_2d
                                    IL
                                    ILU
-                                   ale
-                                   features_2d)
+                                   ale)
+

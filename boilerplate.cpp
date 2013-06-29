@@ -283,67 +283,6 @@ struct mxArray_to_numpy_str {
     }
 }; 
 
-
-struct Pixel2DData_from_numpy_str {
-    static void* convertible(PyObject *o)
-    {
-        PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 2, NULL, npy_real_type(), true))
-            return 0;
-
-        return (void*)o;
-    }
-
-    static void construct(PyObject *o,
-                          converter::rvalue_from_python_stage1_data* data)
-    {
-        void* storage = ((converter::rvalue_from_python_storage<f2d::Pixel2DData>*)data)->storage.bytes;
-        PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) f2d::Pixel2DData();
-        f2d::Pixel2DData* m = (f2d::Pixel2DData*)storage;
-
-        data->convertible = storage; 
-
-        m->m_image_height = ao->dimensions[0];
-        m->m_image_width = ao->dimensions[1];
-        m->m_dim = 1;
-
-        m->m_subsample = 1;
-
-        for (int i=0; i<ao->dimensions[0]; i++) {
-            for (int j=0; j<ao->dimensions[1]; j++) {
-                m->m_features.push_back(vector<real>(1, ((real*)ao->data)[i*ao->dimensions[1] + j]));
-            }
-        }
-    }
-
-    Pixel2DData_from_numpy_str() 
-    {
-        converter::registry::push_back(&convertible, 
-                                       &construct, 
-                                       type_id<f2d::Pixel2DData>());
-    }
-};
-
-struct Pixel2DData_to_numpy_str {
-    static PyObject *convert(const f2d::Pixel2DData &m) {
-        npy_intp dims[] = {m.m_image_height, m.m_image_width};
-
-        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
-
-        for (int i=0; i<dims[0]; i++) {
-            for (int j=0; j<dims[1];j++) {
-                ((real*)retval->data)[i*dims[1] + 
-                                        j] = m.m_features[i][j];
-            }
-        }
-        
-        return (PyObject*)retval;
-    }
-};
-
 struct LRgbImage_from_numpy_str {
     static void* convertible(PyObject *o)
     {
@@ -704,28 +643,6 @@ PyObject* mxarray3d_to_numpy(mxArray* arr)
     return (PyObject*)retval;
 }
 
-shared_ptr<f2d::Pixel2DData> numpy_to_pixeldata(PyObject *o) 
-{
-    PyArrayObject *ao = (PyArrayObject*)o;
-
-    if (!numpy_satisfy_properties(ao, 2, NULL, npy_real_type(), true)) {
-        return shared_ptr<f2d::Pixel2DData>();
-    }
-  
-    vector<vector<real> > M_data(ao->dimensions[0], 
-                                   vector<real>(ao->dimensions[1], 0.0));
-    for (size_t r = 0; r < ao->dimensions[0]; r++) {
-	for (size_t c = 0; c < ao->dimensions[1]; c++) {
-	    M_data[r][c] = ((real*)ao->data)[r*ao->dimensions[1] + c];
-	}
-    }
-    shared_ptr<f2d::Pixel2DData> data = \
-        shared_ptr<f2d::Pixel2DData>(new f2d::Pixel2DData(ao->dimensions[0], 
-                                                          ao->dimensions[1], 
-                                                          1, 
-                                                          M_data));
-    return data;
-}
 
 
 
@@ -752,16 +669,6 @@ LRgbImage* numpy_to_lrgbimage(PyObject *o)
     return lrgb;
 }
 
-void fill_vec_with_resps(vector<shared_ptr<const f2d::Pixel2DData> >& vec_pix_data, 
-			 list responses) 
-{
-    int n = len(responses);
-
-    for (int j=0; j<n; j++) {
-	object o = responses[j];
-	vec_pix_data.push_back(numpy_to_pixeldata(o.ptr()));
-    }
-}
 
 vector<real> numpy_to_vec(PyObject *o) 
 {
