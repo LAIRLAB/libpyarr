@@ -342,8 +342,9 @@ def make_pixbuf(r, g=None, b=None):
         retval[:,:,1] = r
         retval[:,:,2] = r
     else:
-        print "Error: Array of wrong shape passed to make_pixbuf."
-        return None
+        s= "Error: Array of wrong shape passed to make_pixbuf."
+        print s
+        raise Exception(s)
     
     pixbuf = gtk.gdk.pixbuf_new_from_array(retval, gtk.gdk.COLORSPACE_RGB, bits_per_sample=8)
     

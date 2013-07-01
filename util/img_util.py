@@ -250,3 +250,17 @@ def open_pfm_are_you_kidding_me_why_does_this_format_exist(filename):
             im[r_idx, c_idx] = struct.unpack('f', data[4*(c_idx*r_idx+c_idx) : 4*(c_idx*r_idx + c_idx + 1)])[0]
     return im
 
+def non_max_suppression_2d(data, ws = 5):
+    nms = numpy.zeros(data.shape)
+
+    for r in range(ws, data.shape[0] - ws):
+        for c in range(ws, data.shape[1] - ws):
+            v = data[r][c]
+            try:
+                region_max = data[r - ws : r + ws, c - ws : c + ws].max()
+                if v >= region_max:
+                    nms[r][c] = v
+            except IndexError:
+                continue
+    return nms
+                
