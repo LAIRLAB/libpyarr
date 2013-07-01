@@ -20,6 +20,8 @@ def add_method(self, method, name=None):
         name = method.func_name
     setattr(self.__class__, name, method)
 
+def isinstance_cn(x, t):
+    return x.__class__.__name__ == t
 
 def get_registered_classes(name = __name__):
     return inspect.getmembers(sys.modules[name], inspect.isclass)

@@ -4,6 +4,7 @@ from pdbwrap import *
 
 import color_printer as cpm
 import verify_util as vu
+import type_util as tu
 import pdb
 
 try:
@@ -103,6 +104,14 @@ def overlay_bboxes(pil_im, bboxes_alg_dict, **kwargs):
     return pil_im
 
 def overlay_bbox(pil_im, bbox, **kwargs):
+    #because vanilla isinstance(pil_image) is dumb
+    cn = pil_im.__class__.__name__
+    if cn == 'Image':
+        pass
+    elif cn == 'ndarray':
+        pil_im = Image.fromarray(pil_im)
+    else:
+        raise ArgumentError("Can't deal with image of type: {}".format(cn))
     c = kwargs.get('outline', 'blue')
     ImageDraw.Draw(pil_im).rectangle(bbox.get_corners())
     return pil_im
