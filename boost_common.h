@@ -24,6 +24,8 @@
 #include <typedef.h>
 #include <autogen.h>
 
+#include <boilerplate.h>
+
 void boost_him();
 void boost_common();
 void boost_ml();

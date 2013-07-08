@@ -104,7 +104,7 @@ class tpl_decl(object):
     
     def inst_tpl_args(self, tpl_args):
         if len(tpl_args) > 0:
-            cpp_name = self.pre_cpp_name + '<' + reduce(lambda x,y: x+', '+y, tpl_args) + '>'
+            cpp_name = self.pre_cpp_name + '<' + reduce(lambda x,y: x+', '+y, tpl_args) + ' >'
         else:
             cpp_name = self.pre_cpp_name
         python_name = sanitize(cpp_name.split(':')[-1])#.replace('<', '_').replace('>', '_')
@@ -157,7 +157,7 @@ class tpl_decl(object):
                 for i in init_args[:-1]:
                     ret += i + ', '
                 ret += init_args[-1]
-            ret += '>()'
+            ret += ' >()'
         ret += ')\n'
 
         for m in self.method_names:

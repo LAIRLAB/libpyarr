@@ -468,8 +468,27 @@ struct LColourImage_to_numpy_str {
         return (PyObject*)retval;
     }
 };
+ 
+// template <typename T, typename U>
+// struct vec_vec_from_numpy_str {
+//     static void *convertible (PyObject *) 
+//     {
+// 	PyArrayObject *ao = (PyArrayObject*)o; 
+//         if (!numpy_satisfy_properties(ao, 2, NULL, U, true))
+// 	    return 0;	
+//         return (void*)o;
+//     }
+    
+//     static void construct(PyObject *o, converter::rvalue_from_python_stage1_data* data)
+//     {
+// 	void* storage = ((converter::rvalue_from_python_storage<vector<real> >*)data)->storage.bytes;
+//         PyArrayObject *ao = (PyArrayObject*)o;
 
-
+// 	new (storage) std::vector<std::vector<T> >(int(ao->dimensions[0]),
+// 						   std::vector<T>(int(ao->dimensions[1]), 0));
+// 	data->convertible = storage;
+//     }
+// }
 
 struct vec_from_numpy_str {
     static void* convertible(PyObject *o)
