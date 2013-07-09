@@ -9,16 +9,19 @@
 
 #include <autogen_converters.cpp>
 #include <to_python_converters.cc>
+#include <set>
 
 
 using std::string;
-using std::vector;
+using std::vector; 
+using std::set;
 using namespace ml;
 
 bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst, 
                                 pyarr<real> X_train, 
                                 pyarr<real> Y_train, 
                                 bool do_weights, 
+                                bool require_positives,
                                 real pos_weight, 
                                 real neg_weight)
 {
@@ -31,14 +34,20 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
     vector<const vector<real>*> Xvec;
     vector<const vector<real>*> Yvec;
 
+    inst->m_required_indices.clear();
+
     for (int i=0; i<X_train.dims[0]; i++) {
         vector<real> *tmp = new vector<real>(X_train.data + i*X_train.dims[1],
                                                  X_train.data + (i+1)*X_train.dims[1]);
         Xvec.push_back(const_cast<const vector<real>*>(tmp));
 
         tmp = new vector<real>(Y_train.data + i*Y_train.dims[1],
-                                 Y_train.data + (i+1)*Y_train.dims[1]);
+                               Y_train.data + (i+1)*Y_train.dims[1]);
         Yvec.push_back(const_cast<const vector<real>*>(tmp));
+
+        if ((*tmp)[0] < 1.0) {
+            inst->m_required_indices.insert(i);
+        }
     }
     vector<real> w_fold(Xvec.size(), 1.0);
 
@@ -72,7 +81,7 @@ bool VBoostedMaxEnt__wrap_train(VBoostedMaxEnt* inst,
             }
         }
     }
-    
+
     inst->train(Xvec, Yvec, w_fold, NULL, NULL);
 
     for (int i=0; i<X_train.dims[0]; i++) {
@@ -91,7 +100,7 @@ PyObject* VBoostedMaxEnt__wrap_predict(VBoostedMaxEnt* inst,
 }
 
 pyarr<real> VBoostedMaxEnt__batch_predict(VBoostedMaxEnt* inst, 
-                                            pyarr<real> queries)
+                                          pyarr<real> queries)
 {
     long int argh[] = {queries.dims[0], inst->m_nbr_labels};
     pyarr<real> ret(2, argh);
