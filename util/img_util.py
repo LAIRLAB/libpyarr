@@ -4,6 +4,8 @@ from pdbwrap import *
 
 import color_printer as cpm
 import verify_util as vu
+import type_util as tu
+import rand_util as ru
 import pdb
 
 try:
@@ -58,8 +60,16 @@ def overlay_best_classification(image, segmentation, probabilities, colormap, al
     best_labels = get_best_labels(segmentation, probabilities)
     return overlay_classification(image, best_labels, colormap, alpha_im, alpha_color)
 
-def overlay_classification(image, labels, colormap, alpha_im = 0.4, alpha_color = 0.6):
-    return numpy.uint8(alpha_im * image + alpha_color * colormap[labels])
+def overlay_classification(image, labels, colormap, alpha_im = 0.4, alpha_color = 0.6,
+                           image_view_map = None):
+    if image_view_map is None:
+        image_view = image
+        labels_view = labels
+    else:
+        image_view = image[image_view_map]
+        labels_view = labels[image_view_map]
+    image[image_view_map] = numpy.uint8(alpha_im * image_view + alpha_color * colormap[labels_view])
+    return image
 
 def probmap_to_heatmap(image_shape, prob_map, label_idx):
     hm = numpy.uint8(255*numpy.reshape(prob_map[:, label_idx], image_shape))
@@ -103,9 +113,39 @@ def overlay_bboxes(pil_im, bboxes_alg_dict, **kwargs):
     return pil_im
 
 def overlay_bbox(pil_im, bbox, **kwargs):
-    c = kwargs.get('outline', 'blue')
-    ImageDraw.Draw(pil_im).rectangle(bbox.get_corners())
-    return pil_im
+    cn = pil_im.__class__.__name__
+    if cn == 'Image':
+        pass
+    elif cn == 'ndarray':
+        pil_im = Image.fromarray(pil_im)
+    else:
+        raise ArgumentError("Can't deal with image of type: {}".format(cn))
+
+    c = kwargs.get('outline', 'red')
+    
+    if hasattr(bbox, 'get_corners'):        
+        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox.get_corners)
+        #ImageDraw.Draw(pil_im).rectangle(bbox.get_corners(), outline = 'blue', width = kwargs.get('width', 2))
+    elif hasattr(bbox, 'len') and len(bbox) == 4:
+        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox)
+        #ImageDraw.Draw(pil_im).rectangle(bbox, outline = 'blue', width = kwargs.get('width', 2))
+    elif tu.hasattrs(bbox, ['x', 'y', 'width', 'height']):
+        bbox_coords = (bbox.x, bbox.y, bbox.x + bbox.width, bbox.y + bbox.height)
+        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox_coords)
+        #ImageDraw.Draw(pil_im).rectangle(bbox_coords, outline = 'blue', width = kwargs.get('width', 2))
+    else:
+        raise ArgumentError("Unsupported bounding box type")
+    return numpy.asarray(pil_im).copy()
+
+def nonshitty_rectangle(draw_inst, bbox, width = 2, outline = 'blue'):
+    p1 = (bbox[0], bbox[1])
+    p2 = (bbox[0], bbox[3])
+    p3 = (bbox[2], bbox[1])
+    p4 = (bbox[2], bbox[3])
+    draw_inst.line([p1, p2], width = width, fill = outline)
+    draw_inst.line([p1, p3], width = width, fill = outline)
+    draw_inst.line([p2, p4], width = width, fill = outline)
+    draw_inst.line([p3, p4], width = width, fill = outline)    
 
 def imresize(arr, size=None, **kwargs):
     interp = kwargs.get('interp', Image.BILINEAR)
@@ -141,6 +181,17 @@ def pil_to_pixmap(im):
     image = QImage(data, im.size[0], im.size[1], QImage.Format_ARGB32)
     return QPixmap.fromImage(image)
     
+def rasterize_numpy(np):
+    mi = np.min()
+    ma = np.max()
+    colormap = []
+    for i in range(mi, ma + 1):
+        mapping = [i]
+        mapping.extend(ru.random_8bit_rgb())
+        colormap.append(mapping)
+    return map_ascii_to_pil(np, colormap)
+    
+
 #requires a square integer image whose indices map to colors in a colormap object
 #the colormap is map of format:
 # <index> : [label, Color]
@@ -152,8 +203,11 @@ def map_ascii_to_pil(ascii_array,colormap):
     
     for i in range(rows):
         for j in range(cols):
-            color = colormap[ascii_array[i,j]][1]
-            im[i,j] = [color.r(), color.g(), color.b()]
+            color = colormap[ascii_array[i,j]][1:]
+            try:
+                im[i,j] = [color.r(), color.g(), color.b()]
+            except AttributeError:
+                im[i,j] = color
             
     pil_image = Image.fromarray(im,'RGB')
     return pil_image
@@ -263,4 +317,119 @@ def non_max_suppression_2d(data, ws = 5):
             except IndexError:
                 continue
     return nms
+         
+#takes a labeled map (e.g. a segmentmap)       
+def get_centroids_map(np_map):
+    centroids_map = numpy.zeros(np_map.shape[:2], dtype = numpy.uint8)
+    centroids = []
+    for s in range(np_map.min(), np_map.max()):
+        center = [int(x.mean()) for x in numpy.where(np_map == s) if x.size > 0]
+        if len(center) == 0:
+            centroids.append((s, [None, None]))
+            continue
+        else:
+            centroids.append((s, center))
+        centroids_map[center[0], center[1]] = 255
+    return centroids_map, centroids
+
+def get_segment_borders(np_map, val = 255):
+    npa = numpy.zeros((np_map.shape[0], np_map.shape[1]))
+    
+    num_segments = np_map.max() - np_map.min() + 1
+    perimeter_pixels = [[] for x in range(num_segments)]
+    
+    flag_counted = npa.copy()
+    
+    rows = np_map.shape[0]
+    cols = np_map.shape[1]
+
+    #modeled after SegmentMap::computeBorders
+    for r in range(rows):
+        for c in range(cols):
+            segment_a = np_map[r][c]
+
+            if (r == 0 or c == 0 or r == (rows - 1) or c == (cols - 1)):
+                if (not flag_counted[r][c]):
+                    flag_counted[r][c] = 1
+                    perimeter_pixels[segment_a].append(r * cols + c)
+                    npa[r][c] = val
+
+            #right
+            if (c < (cols - 1)):
+                r_r = r
+                c_r = c + 1
+                segment_r = np_map[r_r][c_r]
+                if (segment_a != segment_r):
+                    if (not flag_counted[r][c]):
+                        flag_counted[r][c] = 1
+                        perimeter_pixels[segment_a].append(r * cols + c)
+                        npa[r][c] = val
+
+                    if (not flag_counted[r_r][c_r]):
+                        flag_counted[r_r][c_r] = 1
+                        perimeter_pixels[segment_r].append(r_r * cols + c_r)
+                        npa[r_r][c_r] = val
+            
+            #down-left, down, down-right
+            if (r < (rows - 1)):
                 
+                #down-left
+                if c > 0:
+                    r_dl = r + 1
+                    c_dl = c - 1
+                    segment_dl = np_map[r_dl][c_dl]
+                    if (segment_a != segment_dl):
+                        if (not flag_counted[r][c]):
+                            flag_counted[r][c] = 1
+                            perimeter_pixels[segment_a].append(r * cols + c)
+                            npa[r][c] = val
+
+                        if (not flag_counted[r_dl][c_dl]):
+                            flag_counted[r_dl][c_dl] = 1
+                            perimeter_pixels[segment_dl].append(r_dl * cols + c_dl)
+                            npa[r_dl][c_dl] = val
+
+                r_d = r + 1
+                c_d = c
+                segment_d = np_map[r_d][c_d]
+
+                #down
+                if  (segment_a != segment_d):
+                    if (not flag_counted[r][c]):
+                        flag_counted[r][c] = 1
+                        perimeter_pixels[segment_a].append(r * cols + c)
+                        npa[r][c] = val
+
+                    if (not flag_counted[r_d][c_d]):
+                        flag_counted[r_d][c_d] = 1
+                        perimeter_pixels[segment_d].append(r_d * cols + c_d)
+                        npa[r_d][c_d] = val
+
+                #down-right
+                if (c < cols - 1):
+                    r_dr = r + 1
+                    c_dr = c + 1
+                    segment_dr = np_map[r_dr][c_dr]
+                    if (segment_a != segment_dr):
+                        if (not flag_counted[r][c]):
+                            flag_counted[r][c] = 1
+                            perimeter_pixels[segment_a].append(r * cols + c)
+                            npa[r][c] = 1
+
+                        if (not flag_counted[r_dr][c_dr]):
+                            flag_counted[r_dr][c_dr] = 1
+                            perimeter_pixels[segment_dr].append(r_dr * cols + c_dr)
+                            npa[r_dr][c_dr] = 1
+
+            #end down
+        #end cols
+    #end rows
+    return npa
+                    
+                    
+                
+            
+                    
+                
+    
+    

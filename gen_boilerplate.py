@@ -24,8 +24,7 @@ def gen_everything():
                         [],
                         [['first', 'T1'],
                          ['second', 'T2']],
-                        init_args=['T1', 'T2'])
-                        
+                        init_args=['T1', 'T2'])                        
 
     classes = [cls_decl('kittilabel',
                         [],
@@ -38,7 +37,9 @@ def gen_everything():
                         init_args=[]),
                inst_td(pair_tpl, ['size_t', 'size_t'], n_vecs=2),
                inst_td(pair_tpl, ['unsigned int', 'unsigned int']),
-               inst_td(pair_tpl, ['unsigned long', 'unsigned long'])]
+               inst_td(pair_tpl, ['unsigned long', 'unsigned long']),
+               inst_td(pair_tpl, ['bool', 'bool']),
+               inst_td(pair_tpl, ['pair<size_t, size_t>', 'pair<bool, bool>'], n_vecs = 1)]
 
     vecs = [vec_decl('size_t'),
             vec_decl('size_t_vec'),
@@ -50,8 +51,9 @@ def gen_everything():
             vec_decl('float_vec_vec'), 
             vec_decl('uint', 'unsigned int'),
             vec_decl('ulong', 'unsigned long'),
-            vec_decl('uint_vec')]
-
+            vec_decl('uint_vec'),
+            vec_decl('bool')]
+           
     things = [pyarr_converter('int', 'NPY_INT32'),
               pyarr_converter('unsigned int', 'NPY_UINT32'),
               pyarr_converter('double', 'NPY_FLOAT64'),

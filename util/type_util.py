@@ -1,4 +1,4 @@
-import os, sys, inspect, pdb
+import os, sys, inspect, pdb, numpy
 
 try:
     from util import color_printer as cp
@@ -20,12 +20,27 @@ def add_method(self, method, name=None):
         name = method.func_name
     setattr(self.__class__, name, method)
 
+def isinstance_cn(x, t):
+    return x.__class__.__name__ == t
 
 def get_registered_classes(name = __name__):
     return inspect.getmembers(sys.modules[name], inspect.isclass)
+
+def hasattrs(obj, atr_list):
+    for a in atr_list:
+        if not hasattr(obj, a):
+            return False
+    return True
 
 # def registered_classes():
 #     print inspect.stack()[-1].__name__
 #     print "module : {}".format(inspect.getmodule(inspect.stack()[-1]))
     
 #     return inspect.getmembers(inspect.getmodule(inspect.stack()[-1]), inspect.isclass)
+
+def vec_vec_to_numpy(vvd):
+    x = numpy.zeros((len(vvd), len(vvd[0])))
+    for i in range(len(x)):
+        for j in range(len(x[i])):
+            x[i][j] = vvd[i][j]
+    return x
