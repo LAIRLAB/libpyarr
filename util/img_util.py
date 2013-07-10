@@ -451,6 +451,8 @@ class IntegralImage(object):
         r0 = int(b.y)
         c0 = int(b.x)
         
+        #hack
         r1 = min(319, int(r0 + b.height))
         c1 = min(319, int(c0 + b.width))
         return self.integrate(r0, c0, r1, c1)
+
