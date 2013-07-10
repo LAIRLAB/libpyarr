@@ -124,10 +124,11 @@ class cairo_plotwidget(cairo_drawingarea, cairo_zoomable_mixin):
             print "done with loop"
             cc.stroke()
 
-class box_n_overlay_widget(cairo_drawingarea):
+class box_n_overlay_widget(cairo_drawingarea, cairo_zoomable_mixin):
     def __init__(self, parent, boxlist_attr=None, 
                  pix_attr='pixarr'):
         cairo_drawingarea.__init__(self)
+        cairo_zoomable_mixin.__init__(self)
 
         self.mparent = parent
         self.mparent.add_dependent(self.changed)
@@ -151,7 +152,9 @@ class box_n_overlay_widget(cairo_drawingarea):
         self.set_size_request(self.w, self.h)
 
     def draw(self, cc, w, h):
+        cc.scale(self.scale, self.scale)
         cc.translate(self.offset[0], self.offset[1])
+
         
         if self.show_gt and self.mparent.gt_arr is not None:
             showarr = float32(getattr(self.mparent, self.pix_attr).copy())
@@ -775,3 +778,67 @@ def draw_arrow(cc, x, y, xdiff, ydiff):
 
     cc.restore()
 
+
+class vis_app(model):
+    def __init__(self,
+                 image_dir,
+                 basenames,    
+                 ext):
+                 
+        self.image_dir = image_dir
+        self.basenames = basenames
+        self.bn_idx = 0
+
+        self.ext = ext
+
+        self.show_props = []
+
+    def update(self):
+        self.basename = self.basenames[self.bn_idx]
+
+        print "BASENAME:",self.basename
+        if hasattr(self, 'pic_widget'):
+            for a in self.show_props:
+                print a,"is",getattr(self.pic_widget, a)
+
+        self.pixarr = numpy.array(Image.open(self.image_dir +
+                                             "/" + self.basename + self.ext))
+        self.changed()
+
+    def next_cb(self, *args):  
+        self.bn_idx += 1
+        self.update()
+
+    def prev_cb(self, *args):
+        self.bn_idx -= 1
+        self.update()
+
+    def filter_cb(self, v):
+        self.pic_widget.min_true_thresh = v
+        self.changed()
+
+    def def_prop_toggle_cb(self, prop):
+        def my_prop_toggle_cb(is_active):
+            setattr(self.pic_widget, prop, is_active)
+            self.changed()
+        return my_prop_toggle_cb
+
+    def def_algcb(self, alg):
+        def my_algcb(*args):
+            self.algorithm = alg
+            self.update()
+        return my_algcb
+    def make_container(self):
+        if hasattr(self, 'window'):
+            self.keepalive = True
+            self.window.destroy()
+            self.keepalive = False
+
+        self.window = gtk.Window()
+
+    def container_show(self):
+        self.container.show()
+        self.container.show_all()
+        self.window.add(self.container)
+        self.window.present()
+        self.window.move(0,0)
