@@ -675,7 +675,7 @@ def gtklabel(text):
 
 def gtkscrollbar(scroll_cb):
     def wrapped_cb(range, *args):
-        return scroll_cb(range.get_adjustment().get_value(), changed_from_scrollbar = True)
+        return scroll_cb(range.get_adjustment().get_value())
     adj = gtk.Adjustment(value=0.0,lower=0.0,upper=1.0,step_incr=.001,page_incr=.01,page_size=.01)
     slider = gtk.HScrollbar(adj)
     slider.connect("value-changed",pdbwrap(wrapped_cb),"hi.")
