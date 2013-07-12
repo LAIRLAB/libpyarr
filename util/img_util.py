@@ -134,7 +134,7 @@ def overlay_bbox(pil_im, bbox, **kwargs):
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox_coords)
         #ImageDraw.Draw(pil_im).rectangle(bbox_coords, outline = 'blue', width = kwargs.get('width', 2))
     else:
-        raise ArgumentError("Unsupported bounding box type")
+        raise ValueError("Unsupported bounding box type")
     return numpy.asarray(pil_im).copy()
 
 def nonshitty_rectangle(draw_inst, bbox, width = 2, outline = 'blue'):
@@ -170,7 +170,7 @@ def imresize(arr, size=None, **kwargs):
                             maxdim)
     else:
         print "Gotta specify a size or a scale to imresize."
-        raise ArgumentError
+        raise ValueError
     
     ret = numpy.array(Image.fromarray(arr, mode=mode).resize(new_size, interp), copy = True)
 
@@ -427,9 +427,32 @@ def get_segment_borders(np_map, val = 255):
     return npa
                     
                     
-                
-            
-                    
-                
-    
-    
+          
+class IntegralImage(object):
+    def __init__(self, x):
+        self.ii = x.cumsum(1).cumsum(0)
+
+    def integrate(self, r0, c0, r1, c1):
+        S = 0
+        S += self.ii[r1, c1]
+
+        if (r0 - 1 >= 0) and (c0 - 1 >= 0):
+            S += self.ii[r0 - 1, c0 - 1]
+
+        if (r0 - 1 >= 0):
+            S -= self.ii[r0 - 1, c1]
+
+        if (c0 - 1 >= 0):
+            S -= self.ii[r1, c0 - 1]
+
+        return S
+
+    def integrate_box(self, b):
+        r0 = int(b.y)
+        c0 = int(b.x)
+        
+        #hack
+        r1 = min(319, int(r0 + b.height))
+        c1 = min(319, int(c0 + b.width))
+        return self.integrate(r0, c0, r1, c1)
+

@@ -549,11 +549,6 @@ def gtknb(*widgets):
     ret.set_tab_pos(gtk.POS_TOP)
     return ret
 
-def gtktextinput(cb):
-    b = gtk.Entry(max = 10)
-    b.connect('activate', pdbwrap(cb))
-    return b
-
 def gtkbutton(name, cb):
     b = gtk.Button(name)
     b.connect("clicked", pdbwrap(cb), "Hi.")
