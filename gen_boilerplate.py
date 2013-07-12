@@ -55,6 +55,7 @@ def gen_everything():
             vec_decl('bool')]
            
     things = [pyarr_converter('int', 'NPY_INT32'),
+              pyarr_converter('short', 'NPY_INT16'),
               pyarr_converter('unsigned int', 'NPY_UINT32'),
               pyarr_converter('double', 'NPY_FLOAT64'),
               pyarr_converter('float', 'NPY_FLOAT32'),

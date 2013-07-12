@@ -77,6 +77,12 @@ int lookup_npy_type(T v) {
     if (s == "i") {
         return NPY_INT32;
     } 
+    if (s == "s") {
+        return NPY_INT16;
+    }
+    if (s == "t") {
+        return NPY_UINT16;
+    }
     if (s == "f") {
         return NPY_FLOAT32;
     }  
@@ -92,6 +98,9 @@ int lookup_npy_type(T v) {
     if (s == "l") {
         return NPY_INT64;
     }  
+    if (s == "m") {
+        return NPY_UINT64;
+    }
     if (s == "j") {
         return NPY_UINT32;
     }  
