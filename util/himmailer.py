@@ -30,6 +30,10 @@ class HIMMailer(object):
         if recipients is None or len(recipients) == 0:
             cpm.gcp.warning("No recipients specified, not emailing")
             return
+        if self.sender is None or self.username is None or self.password is None:
+            cpm.gcp.error("No credentials supplied for mailing")
+            return
+
         if isinstance(recipients, str):
             recipients = [recipients]
         subject = '{}'.format(subject)
