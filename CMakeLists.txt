@@ -24,4 +24,3 @@ target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES}
                                    IL
                                    ILU
                                    ale)
-

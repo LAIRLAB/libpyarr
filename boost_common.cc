@@ -10,6 +10,7 @@
 #include <autogen_converters.cpp>
 #include <to_python_converters.cc>
 #include <set>
+#include <data_2d/segment_map.h>
 
 
 using std::string;
@@ -327,7 +328,8 @@ void boost_ml()
         ;
     class_<VBoostedMaxEnt>("VBoostedMaxEnt", init<real, real, real, int, VRandomForest>())
         .def_readwrite("m_step_sizes", &VBoostedMaxEnt::m_step_sizes)
-        .def_readwrite("m_dim", &VBoostedMaxEnt::m_dim)
+        .def_readwrite("m_dim", &VBoostedMaxEnt::m_dim) 
+        .def_readonly("m_nbr_labels", &VBoostedMaxEnt::m_nbr_labels)
         .def("get_vec_vrandomforest", VBoostedMaxEnt__get_vec_vrandomforest)
         .def("train", VBoostedMaxEnt__wrap_train)
         .def("predict", VBoostedMaxEnt__wrap_predict)
