@@ -277,32 +277,6 @@ def get_ar_maintained_size(size, new_max):
     else:
         return [int(new_max*(size[0]*1.0/size[1])), new_max]
 
-def open_pfm(filename):
-
-    return pdbwrap(open_pfm_are_you_kidding_me_why_does_this_format_exist)(filename)
-
-def open_pfm_are_you_kidding_me_why_does_this_format_exist(filename):
-    import struct
-
-
-    fh = open(filename, 'r')
-    id_line = fh.readline().strip()
-    dimensions_line = fh.readline().strip().split()
-    sf_line = fh.readline().strip()
-    data = fh.readline()
-
-    width = int(dimensions_line[0])
-    height = int(dimensions_line[1])
-    im = numpy.zeros((height, width))
-   # print id_line
-   # if id_line is not 'Pf':
-   #     raise TypeError("Cannot read non-grayscale pfm")
-
-    for r_idx in range(0, height):
-        for c_idx in range(0, width):
-            print "r_idx, c_idx, data:", r_idx, c_idx, data[4*(c_idx*r_idx+c_idx) : 4*(c_idx*r_idx + c_idx + 1)]
-            im[r_idx, c_idx] = struct.unpack('f', data[4*(c_idx*r_idx+c_idx) : 4*(c_idx*r_idx + c_idx + 1)])[0]
-    return im
 
 def non_max_suppression_2d(data, ws = 5):
     nms = numpy.zeros(data.shape)
@@ -427,7 +401,7 @@ def get_segment_borders(np_map, val = 255):
     return npa
                     
                     
-          
+#dont use this it has a hack          
 class IntegralImage(object):
     def __init__(self, x):
         self.ii = x.cumsum(1).cumsum(0)
@@ -451,7 +425,7 @@ class IntegralImage(object):
         r0 = int(b.y)
         c0 = int(b.x)
         
-        #hack
+        #hack 
         r1 = min(319, int(r0 + b.height))
         c1 = min(319, int(c0 + b.width))
         return self.integrate(r0, c0, r1, c1)
