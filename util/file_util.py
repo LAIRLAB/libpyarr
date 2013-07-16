@@ -1,6 +1,5 @@
 import color_printer as cpm
 import os, sys, type_util, datetime, Image, numpy, img_util, cPickle
-import detector_core.ta2_globals as ta2_globals
 
 def savez_dir(dirname, arr):
     try:
@@ -68,78 +67,9 @@ def generate_timestamp(minutes=True, seconds=False, microsecond = False):
         stamp += '-' + str(now.microsecond)
     return stamp
 
-def verify_json_list(json_files, n_required):
-    if len(json_files) != n_required:
-        cpm.gcp.error("Wrong number of json files! (wanted {}) Failure."
-                 .format(n_required))
-        return False
-    cpm.gcp.info("Checking for JSON existence of {} files".format(n_required))
-    for j in json_files:
-        if not os.path.isfile(j):
-            cpm.gcp.error("JSON file: '{}' doesn't exist.".format(j))
-            return False
-    return True
-     
 def load_basenames(basenames_fn):
     return [b.strip() for b in open(basenames_fn).readlines()]
    
-def load_segmentation(fname):
-    return numpy.genfromtxt(fname, dtype = numpy.uint8)
-
-def load_segment_probabilities(fname):
-    return numpy.genfromtxt(fname, dtype = numpy.float64)
-
-def verify_basenames(basenames, im_dir, gt_dir):
-        num_bad = 0
-        cpm.gcp.info("Checking images and GT for {} basenames...".format(len(basenames)))
-        for b in basenames:
-            cpm.gcp.debug("checking {}".format(b))
-            im_loaded = False
-            gt_loaded = False
-            for s in img_util.im_suffixes:
-                im_fn = '{}/{}{}'.format(im_dir, b, s)
-                try:
-                    im_loaded = Image.open(im_fn).mode == 'RGB'
-                    break
-                except IOError:
-                    pass
-            if not im_loaded:
-                cpm.gcp.error("basename: {} had bad image. (no RGB image existed for suffixes: {})".format(b, img_util.im_suffixes))
-            try:
-                load_integer_map('{}/{}'.format(gt_dir, b))
-                gt_loaded = True
-            except IOError:
-                cpm.gcp.error("basename: {} had bad gt".format(b))
-            if not im_loaded or not gt_loaded:
-                num_bad += 1
-                basenames.remove(b)
-        return num_bad
-    
-#load txt file from .txt or .npz
-def load_integer_map(prefix):
-    import numpy
-    s = "No integer map {}(.npz, .txt) found".format(prefix)
-    try:
-        with open(prefix + '.npz') as f:
-            a = numpy.load(f)['arr_0']
-            return a
-    except IOError:
-        try:
-            with open(prefix + '.txt') as f:
-                a = numpy.genfromtxt(f, dtype=ta2_globals.ground_truth_dtype)
-                return a
-        except IOError:
-            try:
-                with open(prefix + '.regions.txt') as f:
-                    a = numpy.genfromtxt(f, dtype=ta2_globals.ground_truth_dtype)
-                    return a
-            except IOError:
-                try:
-                    with open(prefix) as f:
-                        return numpy.genfromtxt(f, dtype = ta2_globals.ground_truth_dtype)
-                except IOError:                    
-                    raise IOError(s)
-
 def require_existence(f, quiet=False):
     if isinstance(f,list):
         for d in f:
