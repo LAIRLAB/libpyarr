@@ -53,7 +53,21 @@ def pdbwrap(f):
     return fdebug
 
 
-    
+#decorator, e.g. @debug(True)
+import functools
+def debug(on = True, *exceptions):
+    if not exceptions:
+        exceptions = (AssertionError, )
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except exceptions:
+                if on:
+                    pdb.post_mortem(sys.exc_info()[2])
+        return wrapper
+    return decorator
 
 def pdbwrap_email(f, subject, recipients):
     '''A utility for dropping out to a debugger and emailing on exceptions.'''
