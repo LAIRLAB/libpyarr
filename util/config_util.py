@@ -13,10 +13,13 @@ class ConfigOverrider(object):
                                              argparse.ArgumentDefaultsHelpFormatter)
         self.help = {}
 
+        #reverse so more important things are added later, and show up in help later
+        csr = config.sections()
+        csr.reverse()
         for (k, v) in config.items('Help'):
             self.help[k] = v
 
-        for s in config.sections():
+        for s in csr:
             if s.lower() == 'help':
                 continue
 
