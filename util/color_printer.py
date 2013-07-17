@@ -1,11 +1,8 @@
 
 #usage: used to print colors terminals that support ANSI escape sequences
 import sys, os, inspect, subprocess, datetime, time
-try:
-    pass
-    #from libboost_common import set_logger_verbosity
-except ImportError:
-    pass
+try: from libboost_common import set_logger_verbosity
+except ImportError: pass
 
 def color_code_switch(code):
     code = code.lower()
