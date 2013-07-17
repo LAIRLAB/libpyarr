@@ -18,11 +18,6 @@ import numpy
 
 im_suffixes = ['.jpg', '.png', '']
 
-def open_zero_one(fn):
-    assert(os.path.isfile(fn))
-    I_np = numpy.asarray(Image.open(fn), dtype = numpy.float64) / 255.0
-    return I_np
-
 def load_basename(prefix, mode='RGB'):
     im = None
     imfname = None
@@ -36,7 +31,6 @@ def load_basename(prefix, mode='RGB'):
                 continue
         except IOError:
             continue
-
 
     if im is None:
         raise IOError("Image for basename: {} could not be loaded as RGB".format(prefix))
