@@ -5,6 +5,7 @@ import copy
 from common.util.pdbwrap import *
 import common.util.color_printer as cpm
 import common.util.file_util as fu
+import him_2d.him_util as hu
 import common.util.img_util as iu
 
 class FoldMaker(object):
@@ -18,7 +19,7 @@ class FoldMaker(object):
         basenames = sorted(list(set([x for x in gt_bnames if x in i_bnames])))
 
         cpm.gcp.info("{} shared basenames".format(len(basenames), image_dir))
-        num_bad = fu.verify_basenames(basenames, image_dir, gt_dir)
+        num_bad = hu.verify_basenames(basenames, image_dir, gt_dir)
         cpm.gcp.warning("{} bad image - gt pairs".format(num_bad))
         cpm.gcp.info("{} valid image - gt pairs will be used for folds".format(len(basenames)))
 
