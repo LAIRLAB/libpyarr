@@ -1,12 +1,15 @@
 #3rd party modules
 import os, Image, ImageDraw, numpy as np, scipy.misc
+import matplotlib.pyplot as plt
 from pdbwrap import *
+import signal
 
 import color_printer as cpm
 import verify_util as vu
 import type_util as tu
 import rand_util as ru
 import pdb
+import subprocess
 
 try:
     from PySide.QtGui import QImage as QImage, QPixmap as QPixmap
@@ -424,3 +427,46 @@ class IntegralImage(object):
         c1 = min(319, int(c0 + b.width))
         return self.integrate(r0, c0, r1, c1)
 
+def clip_bboxes(bboxes, shape):
+    for bbox in bboxes:
+        bbox.x = min(max(bbox.x, 0), shape[1]-1)
+        bbox.y = min(max(bbox.y, 0), shape[0]-1)
+        if bbox.x + bbox.width < shape[1]:
+            pass
+        else:
+            bbox.width = shape[1] - bbox.x - 1
+
+        if bbox.y + bbox.height < shape[0]:
+            pass
+        else:
+            bbox.height = shape[0] - bbox.y - 1
+
+
+#this doesn't work
+class mac_tmp_display(object):
+    def __init__(self, im):
+        try:
+            im = Image.fromarray(im)
+        except:
+            pass
+        self.fn = ru.random_ascii_string(7) + '.png'
+        with open(self.fn, 'w') as f:
+            im.save(f)
+            f.flush()
+            os.fsync(f.fileno())
+            
+        while not os.path.isfile(self.fn):
+            pass
+        self.viewer = subprocess.Popen(['open', self.fn])
+        
+    def destroy(self):
+        os.killpg(self.viewer.pid, signal.SIGKILL)
+        os.remove(self.fn)
+
+
+class tmp_display(object):
+    def __init__(self, im):
+        self.i = plt.imgshow(im)
+
+    def destroy(self):
+        plt.close()
