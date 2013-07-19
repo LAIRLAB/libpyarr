@@ -24,11 +24,11 @@ target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES}
                                    IL
                                    ILU
                                    ale)
-add_library(img_util
-  img_util.cc)
-
-set_target_properties(img_util PROPERTIES SUFFIX .so)
-target_link_libraries(img_util ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} boost_common)
+#add_library(img_util
+#  img_util.cc)
+#
+#set_target_properties(img_util PROPERTIES SUFFIX .so)
+#target_link_libraries(img_util ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} boost_common)
 
 
   
