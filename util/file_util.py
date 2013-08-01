@@ -189,7 +189,7 @@ class DiskCache(object):
         fn = self.base + '/{}_{}{}'.format(b, identifier, ext)
         try:
             x = rf(fn)
-            cpm.gcp.info("Cache hit: {}".format(fn))
+            cpm.gcp.debug("Cache hit: {}".format(fn))
             return x
         except IOError:
             cpm.gcp.msg("Cache miss: {}".format(fn))
@@ -198,9 +198,9 @@ class DiskCache(object):
     def save(self, obj, b, identifier, sf, ext = '', overwrite=False, reverse_sf = False):
         fn = self.base + '/{}_{}{}'.format(b, identifier, ext)
         if os.path.isfile(fn):
-            if overwrite:
-                cpm.gcp.error("Not overwriting cached file!")
-                return False
+            if not overwrite:
+                raise RuntimeError(\
+                    cpm.gcp.error("Not overwriting cached file!"))
             else:
                 cpm.gcp.warning("Overwriting cached file!")
 

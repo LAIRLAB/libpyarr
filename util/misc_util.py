@@ -22,5 +22,23 @@ def cycle_down(number, obj):
     number = len(obj) - 1 if number == 0 else number - 1
     return number
 
-        
+#return list of lists of values, where each sublist lines up with the keys 
+#of other lists
+
+#e.g.  foo = {1: 'haha', 2 : 'great', 0:'ok'}, 
+#      bar = {1: 'ohno', 0: 'whatev', 2: 'boo'}
+# returns:  [[ok, haha, great], 
+#            [whatev, ohno, boo]]
+def zip_dicts(*args):
+    assert(len(args) > 0)
+    keys = args[0].keys()
+    
+    all_vals = []
+    for d in args:
+        vals = []
+        for k in keys:
+            vals.append(d[k])
+        all_vals.append(vals)
+    return all_vals
+    
             
