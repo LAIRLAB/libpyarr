@@ -188,7 +188,9 @@ class DiskCache(object):
     def load(self, b, identifier, rf, ext=''):
         fn = self.base + '/{}_{}{}'.format(b, identifier, ext)
         try:
-            return rf(fn)
+            x = rf(fn)
+            cpm.gcp.info("Cache hit: {}".format(fn))
+            return x
         except IOError:
             cpm.gcp.msg("Cache miss: {}".format(fn))
             return None
