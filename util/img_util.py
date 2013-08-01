@@ -97,16 +97,21 @@ def bulk_overlay(images, labels, colormap, out_fns, output_dir = 'bulk_overlayed
         overlayed = overlay_classification(im, label, colormap, alpha_im, alpha_color)
         Image.fromarray(overlayed).save('{}/{}'.format(output_dir, out_fn))
  
-def overlay_bboxes(pil_im, bboxes_alg_dict, **kwargs):
-    outlines = kwargs.get('outlines', ['blue' for b in range(len(bboxes_alg_dict.keys()))])
-    thickness = kwargs.get('thickness', 2)
-    for (key, n) in zip(bboxes_alg_dict.keys(), range(len(bboxes_alg_dict.keys()))):
-        for b in bboxes_alg_dict[key]:
-            cn = b.get_corners()
-            ImageDraw.Draw(pil_im).rectangle(b.get_corners(), outline = outlines[key], fill = None)
-            for t in range(thickness):
-                c2 = [(cn[0][0] + t, cn[0][1] + t),  (cn[1][0] + t, cn[1][1] + t)]
-                ImageDraw.Draw(pil_im).rectangle(c2, outline = outlines[key], fill = None)
+# def overlay_bboxes(pil_im, bboxes_alg_dict, **kwargs):
+#     outlines = kwargs.get('outlines', ['blue' for b in range(len(bboxes_alg_dict.keys()))])
+#     thickness = kwargs.get('thickness', 2)
+#     for (key, n) in zip(bboxes_alg_dict.keys(), range(len(bboxes_alg_dict.keys()))):
+#         for b in bboxes_alg_dict[key]:
+#             cn = b.get_corners()
+#             ImageDraw.Draw(pil_im).rectangle(b.get_corners(), outline = outlines[key], fill = None)
+#             for t in range(thickness):
+#                 c2 = [(cn[0][0] + t, cn[0][1] + t),  (cn[1][0] + t, cn[1][1] + t)]
+#                 ImageDraw.Draw(pil_im).rectangle(c2, outline = outlines[key], fill = None)
+#     return pil_im
+
+def overlay_bboxes(pil_im, bboxes):
+    for b in bboxes:
+        pil_im = overlay_bbox(pil_im, b)
     return pil_im
 
 def overlay_bbox(pil_im, bbox, **kwargs):
@@ -114,6 +119,9 @@ def overlay_bbox(pil_im, bbox, **kwargs):
     if cn == 'Image':
         pass
     elif cn == 'ndarray':
+        if pil_im.ndim == 2:
+            #pil_im *= 255
+            pil_im = numpy.uint8(numpy.dstack((pil_im, pil_im, pil_im)))
         pil_im = Image.fromarray(pil_im)
     else:
         raise ArgumentError("Can't deal with image of type: {}".format(cn))
