@@ -311,6 +311,7 @@ void boost_ml()
         ;
 
     class_<VRandomForest>("VRandomForest", init<int, int, int, real, real>())
+	.def(init<string, string>())
         .def_readwrite("m_nbr_trees", &VRandomForest::m_nbr_trees)
         .def_readwrite("m_max_depth", &VRandomForest::m_max_depth)
         .def_readwrite("m_min_node_size", &VRandomForest::m_min_node_size)
