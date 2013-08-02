@@ -8,6 +8,7 @@ from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureC
 
 from pdbwrap import *
 from vis_util import *
+import common.util.color_printer as cpm
 
 font_str = "Tahoma 8.4"
 
@@ -327,6 +328,8 @@ class hist_widget(cairo_drawingarea):
       
 
 def make_pixbuf(r, g=None, b=None):
+    if r.__class__.__name__ == 'Image':
+        r = numpy.asarray(r, dtype = numpy.uint8)
     if r is None: 
         return None
     if type(r) == type(""):
@@ -671,10 +674,21 @@ def gtklabel(text):
     l.modify_font(p)
     return l
 
-def gtkscrollbar(scroll_cb):
+def gtkscrollbar(scroll_cb, 
+                 lower=0.0,
+                 upper = 1.0, 
+                 step_incr = .001,
+                 page_incr = .01,
+                 page_size = .01):
+
     def wrapped_cb(range, *args):
         return scroll_cb(range.get_adjustment().get_value())
-    adj = gtk.Adjustment(value=0.0,lower=0.0,upper=1.0,step_incr=.001,page_incr=.01,page_size=.01)
+    adj = gtk.Adjustment(value=0.0,
+                         lower=lower,
+                         upper=upper,
+                         step_incr=step_incr,
+                         page_incr=page_incr,
+                         page_size=page_size)
     slider = gtk.HScrollbar(adj)
     slider.connect("value-changed",pdbwrap(wrapped_cb),"hi.")
     slider.set_update_policy(gtk.UPDATE_CONTINUOUS)
@@ -844,7 +858,7 @@ class vis_app(model):
         self.window.move(0,0)
 
 class imshow(draggable_overlay, cairo_zoomable_mixin):
-    def __init__(self, parent, attr):
+    def __init__(self, parent, attr, click_cb = None):
         cairo_drawingarea.__init__(self)
         cairo_zoomable_mixin.__init__(self)
         super(imshow, self).__init__(parent, pix_attr = attr)
@@ -852,7 +866,8 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
         self.mparent = parent
         self.mparent.add_dependent(self.changed)
         self.set_size_request(360, 240)
-        #self.connect('button_press_event', pdbwrap(self.on_press))
+        self.connect('button_press_event', pdbwrap(self.on_press))
+        self.click_cb = None
 
     def draw(self, cc, w, h):
         cc.translate(self.offset[0], self.offset[1])
@@ -863,11 +878,35 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
     def changed(self, what=None):
         self.queue_draw()
 
-    # def on_press(self, widget, event):
-    #     location = (int(event.x), int(event.y))
-    #     print event.button
-    #     if event.button == 1:
-    #         print "Location: {}".format((event.x, event.y))
-    #         self.mparent.click_cb(self, location)
-    #     if event.button == 3:
-    #         self.mparent.toggle_cb(self, location)
+    def on_press(self, widget, event):
+        location = (int(event.x), int(event.y))
+        print event.button
+        if self.click_cb is not None:
+            self.click_cb(event)
+            return
+        else:            
+            if event.button == 1:
+                try:
+                    loc = (event.x, event.y)
+                    data = getattr(self.mparent, self.attr) 
+                    if data.__class__.__name__ == 'Image':
+                        val = data.getpixel(loc)
+                    else:
+                        val = data[event.y][event.x]
+                    #assumes uint8
+                    if isinstance(val, list) or isinstance(val, tuple):
+                        val = [x / 255.0 for x in list(val)]
+                    elif isinstance(val, numpy.ndarray):
+                        val = val / 255.0
+                    else:
+                        val /= 255.0
+
+                    cpm.gcp.info("\n\tclick location: {}\n\tval:{}".format(loc,
+                                                                       val))
+                except:
+                    cpm.gcp.error("imshow::on_press oops")
+                    pdb.set_trace()
+            #self.mparent.click_cb(self, location)
+            if event.button == 3:
+                pass
+            #self.mparent.toggle_cb(self, location)

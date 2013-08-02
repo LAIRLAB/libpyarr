@@ -1,5 +1,6 @@
 #3rd party modules
 import os, Image, ImageDraw, numpy as np, scipy.misc
+import scipy.ndimage
 import matplotlib.pyplot as plt
 from pdbwrap import *
 import signal
@@ -130,14 +131,12 @@ def overlay_bbox(pil_im, bbox, **kwargs):
     
     if hasattr(bbox, 'get_corners'):        
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox.get_corners)
-        #ImageDraw.Draw(pil_im).rectangle(bbox.get_corners(), outline = 'blue', width = kwargs.get('width', 2))
     elif hasattr(bbox, 'len') and len(bbox) == 4:
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox)
-        #ImageDraw.Draw(pil_im).rectangle(bbox, outline = 'blue', width = kwargs.get('width', 2))
     elif tu.hasattrs(bbox, ['x', 'y', 'width', 'height']):
-        bbox_coords = (bbox.x, bbox.y, bbox.x + bbox.width, bbox.y + bbox.height)
+        bbox_coords = (bbox.x, bbox.y, 
+                       bbox.x + bbox.width, bbox.y + bbox.height)
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox_coords)
-        #ImageDraw.Draw(pil_im).rectangle(bbox_coords, outline = 'blue', width = kwargs.get('width', 2))
     else:
         raise ValueError("Unsupported bounding box type")
     return numpy.asarray(pil_im).copy()
@@ -190,11 +189,21 @@ def rasterize_numpy(np):
     mi = np.min()
     ma = np.max()
     colormap = []
+    if np.max() <= 1.0:
+        return rasterize_probmap(np)
     for i in range(mi, ma + 1):
         mapping = [i]
         mapping.extend(ru.random_8bit_rgb())
         colormap.append(mapping)
     return map_ascii_to_pil(np, colormap)
+
+def rasterize_probmap(pm):
+    if pm.max() <= 1.0:
+        return Image.fromarray(numpy.uint8(255 * pm))
+    elif pm.max() <= 255:
+        return Image.fromarray(numpy.uint8(pm))
+    else:
+        raise RuntimeError(cpm.gcp.error("unknown probmap type"))
     
 
 #requires a square integer image whose indices map to colors in a colormap object
@@ -449,6 +458,18 @@ def clip_bboxes(bboxes, shape):
         else:
             bbox.height = shape[0] - bbox.y - 1
 
+def segments_adjacent(segmap1, segmap2):
+    (la, num_labels) = scipy.ndimage.label(\
+        numpy.logical_or(segmap1, segmap2))
+    return num_labels < 2
+
+def bounding_box(arr):
+    a = numpy.argwhere(arr)
+    (y_min, x_min), (y_max, x_max) = a.min(0), a.max(0) + 1
+    return Struct(x = x_min, y = y_min,
+                  width = x_max - x_min,
+                  height = y_max - y_min)
+    
 
 #this doesn't work
 class mac_tmp_display(object):
