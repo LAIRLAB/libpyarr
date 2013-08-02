@@ -847,11 +847,12 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
     def __init__(self, parent, attr):
         cairo_drawingarea.__init__(self)
         cairo_zoomable_mixin.__init__(self)
+        super(imshow, self).__init__(parent, pix_attr = attr)
         self.attr = attr
         self.mparent = parent
         self.mparent.add_dependent(self.changed)
         self.set_size_request(360, 240)
-        self.connect('button_press_event', pdbwrap(self.on_press))
+        #self.connect('button_press_event', pdbwrap(self.on_press))
 
     def draw(self, cc, w, h):
         cc.translate(self.offset[0], self.offset[1])
@@ -862,11 +863,11 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
     def changed(self, what=None):
         self.queue_draw()
 
-    def on_press(self, widget, event):
-        location = (int(event.x), int(event.y))
-        print event.button
-        if event.button == 1:
-            print "Location: {}".format((event.x, event.y))
-            self.mparent.click_cb(self, location)
-        if event.button == 3:
-            self.mparent.toggle_cb(self, location)
+    # def on_press(self, widget, event):
+    #     location = (int(event.x), int(event.y))
+    #     print event.button
+    #     if event.button == 1:
+    #         print "Location: {}".format((event.x, event.y))
+    #         self.mparent.click_cb(self, location)
+    #     if event.button == 3:
+    #         self.mparent.toggle_cb(self, location)
