@@ -117,7 +117,7 @@ def overlay_bboxes(pil_im, bboxes):
 
 def overlay_bbox(pil_im, bbox, **kwargs):
     cn = pil_im.__class__.__name__
-    if cn in ['Image', 'PngImageFile', 'JpgImageFile']:
+    if cn in ['Image', 'PngImageFile', 'JpegImageFile']:
         pass
     elif cn == 'ndarray':
         if pil_im.ndim == 2:
