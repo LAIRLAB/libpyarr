@@ -117,7 +117,7 @@ def overlay_bboxes(pil_im, bboxes):
 
 def overlay_bbox(pil_im, bbox, **kwargs):
     cn = pil_im.__class__.__name__
-    if cn == 'Image':
+    if cn in ['Image', 'PngImageFile', 'JpgImageFile']:
         pass
     elif cn == 'ndarray':
         if pil_im.ndim == 2:
@@ -125,7 +125,7 @@ def overlay_bbox(pil_im, bbox, **kwargs):
             pil_im = numpy.uint8(numpy.dstack((pil_im, pil_im, pil_im)))
         pil_im = Image.fromarray(pil_im)
     else:
-        raise ArgumentError("Can't deal with image of type: {}".format(cn))
+        raise RuntimeError("Can't deal with image of type: {}".format(cn))
 
     c = kwargs.get('outline', 'red')
     
@@ -463,13 +463,34 @@ def segments_adjacent(segmap1, segmap2):
         numpy.logical_or(segmap1, segmap2))
     return num_labels < 2
 
-def bounding_box(arr):
+class BoundingBox(object):
+    def __init__(self, x, y, width, height, score = None, type = None):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.score = score
+        self.type = type
+
+    def contains(self, x, y):
+        if x >= self.x and y >= self.y:
+            if x <= self.x + self.width and y <= self.y + self.height:
+                return True
+        return False
+
+    def npy_binary(self, shape):
+        n = numpy.zeros(shape, dtype=numpy.uint8)
+        n[self.y : self.y + self.height,
+          self.x : self.x + self.width] = 1
+        return n
+
+def bounding_box_npy(arr):
     a = numpy.argwhere(arr)
     (y_min, x_min), (y_max, x_max) = a.min(0), a.max(0) + 1
-    return Struct(x = x_min, y = y_min,
-                  width = x_max - x_min,
-                  height = y_max - y_min)
-    
+    return BoundingBox(x = x_min, 
+                       y = y_min,
+                       width = x_max - x_min,
+                       height = y_max - y_min)
 
 #this doesn't work
 class mac_tmp_display(object):
