@@ -492,6 +492,16 @@ def bounding_box_npy(arr):
                        width = x_max - x_min,
                        height = y_max - y_min)
 
+def logical_centroid(arr):
+    if numpy.count_nonzero(arr) == 0:
+        return (None, None)
+    a = numpy.argwhere(arr)
+    (y_min, x_min), (y_max, x_max) = a.min(0), a.max(0) + 1
+    width = x_max - x_min
+    height = y_max - y_min
+    return (y_min + int(height / 2.0), x_min + int(width / 2.0))
+    
+
 #this doesn't work
 class mac_tmp_display(object):
     def __init__(self, im):

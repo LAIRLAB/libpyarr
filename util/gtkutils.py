@@ -325,6 +325,29 @@ class hist_widget(cairo_drawingarea):
 
             draw_histogram(cc, getattr(self.mparent, self.attr), self.norm)
 
+class bargraph(cairo_drawingarea):
+    def __init__(self, mparent, attr, norm, size = (100, 100)):
+        cairo_drawingarea.__init__(self)
+        
+        self.mparent = mparent
+        self.mparent.add_dependent(self.changed)
+        
+        self.set_size_request(*size)
+
+        self.attr = attr
+        self.norm = norm
+
+        self.scale = 1.0
+
+
+    def draw(self, cc, w, h):
+        if getattr(self.mparent, self.attr) is not None:
+            cc.scale(self.scale*w/2.0, -self.scale*h/2.0)
+            cc.translate(1.0, -1.0)
+            #cc.rotate(-numpy.pi/2)
+
+            draw_histogram(cc, getattr(self.mparent, self.attr), self.norm)
+
       
 
 def make_pixbuf(r, g=None, b=None):
@@ -481,6 +504,7 @@ class gtkradiobuttons:
                     self.bs[n].set_active(True)
                 else:
                     self.bs[n].set_active(False)
+
 def gtkhb(*widgets):
     ret = gtk.HBox(spacing=2)
     gtkpack(ret, *widgets)
