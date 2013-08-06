@@ -278,20 +278,22 @@ class draggable_overlay(box_n_overlay_widget):
         
 
 
-def draw_histogram(cc, vec, height, norm=None):
+def draw_histogram(cc, vec, height, norm=None, colors = []):
     cc.set_line_width(0.005)        
     cc.set_source_rgb(0,0,0)
     cc.rectangle(-1,-1,2,2)
     cc.stroke()
     
     vec_max = height
+    if len(colors) != len(vec):
+        colors = [(1, 1, .4) for v in vec]
 
     for (i,v) in enumerate(vec):
         cc.rectangle(i*2.0/len(vec)-1, -1,
                      2.0/len(vec),
                      v*2.0/vec_max)
 
-        cc.set_source_rgb(1,1,0.4)
+        cc.set_source_rgb(*colors[i])
         cc.fill()
 
         cc.rectangle(i*2.0/len(vec)-1, -1,
@@ -326,7 +328,7 @@ class hist_widget(cairo_drawingarea):
             draw_histogram(cc, getattr(self.mparent, self.attr), self.norm)
 
 class bargraph(cairo_drawingarea):
-    def __init__(self, mparent, attr, norm, size = (100, 100)):
+    def __init__(self, mparent, attr, norm, size = (100, 150), colors = []):
         cairo_drawingarea.__init__(self)
         
         self.mparent = mparent
@@ -338,7 +340,7 @@ class bargraph(cairo_drawingarea):
         self.norm = norm
 
         self.scale = 1.0
-
+        self.colors = colors
 
     def draw(self, cc, w, h):
         if getattr(self.mparent, self.attr) is not None:
@@ -346,7 +348,7 @@ class bargraph(cairo_drawingarea):
             cc.translate(1.0, -1.0)
             #cc.rotate(-numpy.pi/2)
 
-            draw_histogram(cc, getattr(self.mparent, self.attr), self.norm)
+            draw_histogram(cc, getattr(self.mparent, self.attr), self.norm, colors = self.colors)
 
       
 

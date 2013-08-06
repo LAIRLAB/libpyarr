@@ -501,32 +501,15 @@ def logical_centroid(arr):
     height = y_max - y_min
     return (y_min + int(height / 2.0), x_min + int(width / 2.0))
     
-
-#this doesn't work
-class mac_tmp_display(object):
-    def __init__(self, im):
-        try:
-            im = Image.fromarray(im)
-        except:
-            pass
-        self.fn = ru.random_ascii_string(7) + '.png'
-        with open(self.fn, 'w') as f:
-            im.save(f)
-            f.flush()
-            os.fsync(f.fileno())
-            
-        while not os.path.isfile(self.fn):
-            pass
-        self.viewer = subprocess.Popen(['open', self.fn])
-        
-    def destroy(self):
-        os.killpg(self.viewer.pid, signal.SIGKILL)
-        os.remove(self.fn)
-
-
-class tmp_display(object):
-    def __init__(self, im):
-        self.i = plt.imgshow(im)
-
-    def destroy(self):
-        plt.close()
+#expects a labeled array
+def find_noncontiguous_objects(arr):
+    assert(arr.size > 0)
+    assert(arr.dtype == numpy.uint8)
+    
+    mi = arr.min()
+    ma = arr.max()
+    objects = []
+    for i in range(mi, ma+1):
+        objects.append(arr == i)
+    return objects
+    
