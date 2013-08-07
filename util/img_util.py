@@ -189,6 +189,8 @@ def rasterize_numpy(np):
     mi = np.min()
     ma = np.max()
     colormap = []
+    if np.ndim == 3:
+        return Image.fromarray(np)
     if np.max() <= 1.0:
         return rasterize_probmap(np)
     for i in range(mi, ma + 1):
@@ -196,6 +198,13 @@ def rasterize_numpy(np):
         mapping.extend(ru.random_8bit_rgb())
         colormap.append(mapping)
     return map_ascii_to_pil(np, colormap)
+
+def rasterize_objects(shape, objs):
+    z = numpy.zeros(shape, dtype = numpy.uint8)
+    for o in objs:
+        z[o] = 1
+    return rasterize_numpy(z)
+    
 
 def rasterize_probmap(pm):
     if pm.max() <= 1.0:
@@ -502,14 +511,32 @@ def logical_centroid(arr):
     return (y_min + int(height / 2.0), x_min + int(width / 2.0))
     
 #expects a labeled array
-def find_noncontiguous_objects(arr):
+def find_noncontiguous_objects(arr, ignore = [0], min_matching = 0):
     assert(arr.size > 0)
     assert(arr.dtype == numpy.uint8)
     
-    mi = arr.min()
     ma = arr.max()
     objects = []
-    for i in range(mi, ma+1):
-        objects.append(arr == i)
+    for i in numpy.unique(arr):
+        if i in ignore:
+            continue
+
+        o = arr == i
+        if numpy.count_nonzero(o) > min_matching:
+            objects.append(o)
     return objects
     
+#expects a labeled array
+def remove_small_regions(arr, min_size = 10, ignore = [0]):
+    assert(arr.dtype == numpy.uint8)
+    for val in numpy.unique(arr):
+        if val in ignore:
+            continue
+        mask = arr == val
+        if numpy.count_nonzero(mask) < min_size:
+            arr[mask] = 0
+    
+# def render_3_chunks(im, chunks):
+#     assert(len(chunks) == 3):
+#     for c in chunks:
+        

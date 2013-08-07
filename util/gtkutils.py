@@ -278,7 +278,7 @@ class draggable_overlay(box_n_overlay_widget):
         
 
 
-def draw_histogram(cc, vec, height, norm=None, colors = []):
+def draw_histogram(cc, vec, height, norm=None, colors = [], text = False):
     cc.set_line_width(0.005)        
     cc.set_source_rgb(0,0,0)
     cc.rectangle(-1,-1,2,2)
@@ -300,8 +300,13 @@ def draw_histogram(cc, vec, height, norm=None, colors = []):
                      2.0/len(vec),
                      v*2.0/vec_max)
 
+
         cc.set_source_rgb(0,0,0)
         cc.stroke()
+
+        #if text:
+        #    cc.show_text("score: {}".format(v))
+
 
 class hist_widget(cairo_drawingarea):
     def __init__(self, mparent, attr, norm):
@@ -348,7 +353,11 @@ class bargraph(cairo_drawingarea):
             cc.translate(1.0, -1.0)
             #cc.rotate(-numpy.pi/2)
 
-            draw_histogram(cc, getattr(self.mparent, self.attr), self.norm, colors = self.colors)
+            draw_histogram(cc, 
+                           getattr(self.mparent, self.attr), 
+                           self.norm, 
+                           colors = self.colors, 
+                           text = True)
 
       
 
