@@ -115,6 +115,9 @@ class PyParserOverrider(object):
         self.pco = PyConfigOverrider(args.config_file)
         self.parser = self.pco.p        
         self.superparsers = superparsers
+        for s in superparsers:
+            self.parser = s.create(self.parser)
+
         self.postparsers = ConfigPostparsers().postparsers
 
     def parse(self):
