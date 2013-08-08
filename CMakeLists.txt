@@ -5,8 +5,8 @@ set(REPO_ROOT_RELATIVE "../")
 get_filename_component(REPO_ROOT ${REPO_ROOT_RELATIVE} ABSOLUTE)
 message("Root of repository: " ${REPO_ROOT})
 
-include(${REPO_ROOT}/common.cmake)
-include(${REPO_ROOT}/boost_util.cmake)
+include(common.cmake)
+include(boost_util.cmake)
 
 add_library(boost_common
             boost_common.cc
@@ -14,16 +14,9 @@ add_library(boost_common
             misc.cpp)
 
 set_target_properties(boost_common PROPERTIES SUFFIX ".so")
-target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES}
-                                   misc_util
-                                   ml_base
-                                   v_regressor
-                                   pclassifier
-                                   regressor
-                                   data_2d
-                                   IL
-                                   ILU
-                                   ale)
+target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+
+
 
   
 

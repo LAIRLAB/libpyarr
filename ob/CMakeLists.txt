@@ -5,8 +5,8 @@ set(REPO_ROOT_RELATIVE "../..")
 get_filename_component(REPO_ROOT ${REPO_ROOT_RELATIVE} ABSOLUTE)
 message("Root of repository: " ${REPO_ROOT})
 
-include(${REPO_ROOT}/common.cmake)
-include(${REPO_ROOT}/boost_util.cmake)
+include(${REPO_ROOT}/common/common.cmake)
+include(${REPO_ROOT}/common/boost_util.cmake)
 
 
 add_library(obwrap

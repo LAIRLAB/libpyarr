@@ -82,114 +82,46 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
     return true;
 }
 
-struct MatrixMap_from_numpy_str {
-    static void* convertible(PyObject *o)
-    {
-        PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 2, NULL, NPY_INT32, true))
-            return 0;
 
-        return (void*)o;
-    }
 
-    static void construct(PyObject *o,
-                          converter::rvalue_from_python_stage1_data* data)
-    {
-        void* storage = ((converter::rvalue_from_python_storage<MatrixMap>*)data)->storage.bytes;
-        PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) MatrixMap(ao->dimensions[0], ao->dimensions[1], 0);
-        MatrixMap* m = (MatrixMap*)storage;
-
-        data->convertible = storage;
-
-        for (int i=0; i<ao->dimensions[0]; i++) {
-            for (int j=0; j<ao->dimensions[1]; j++) {
-                m->m_data[i][j] = ((int*)ao->data)[i*ao->dimensions[1] + j];
+struct mxArray_to_numpy_str {
+    static PyObject *convert(const mxArray &m) {
+        if (m.NDim == 2) {
+            /* fucking column major bitches */ 
+            npy_intp dims[] = {m.Dims[0], m.Dims[1]};
+            
+            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
+            for (int i=0; i<dims[0]; i++) {
+                for (int j=0; j<dims[1]; j++) {
+                    real fake;
+                    ((real*)retval->data)[i*dims[1] + j] = m.get2D(i, j, fake);
+                }
             }
+            
+            return (PyObject*)retval;
         }
-	m->calcExtrema();
-    }
-
-    MatrixMap_from_numpy_str() 
-    {
-        converter::registry::push_back(&convertible, 
-                                       &construct, 
-                                       type_id<MatrixMap>());
-    }
-};
-
-struct MatrixMap_to_numpy_str {
-    static PyObject *convert(const MatrixMap &m) {
-        npy_intp dims[] = {m.getNumberRows(), m.getNumberCols()};
-        
-        PyArrayObject *retval;
-        
-        retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_INT32);
-        for (int i=0; i<dims[0]; i++) {
-            for (int j=0; j<dims[1];j++) {
-                ((int*)retval->data)[i*dims[1] + j] = m.getData()[i][j];
+        else if (m.NDim == 3) {
+            npy_intp dims[] = {m.Dims[0], m.Dims[1], m.Dims[2]};
+            
+            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
+            for (int c=0; c<dims[2]; c++) {
+                for (int col=0; col<dims[1]; col++) {
+                    for (int row=0; row<dims[0]; row++) {
+                        real fake;
+                        ((real*)retval->data)[row*dims[1]*dims[2] + col*dims[2] + c] = \
+                            m.get3D(row, col, c, fake);
+                    }
+                }
             }
+            return (PyObject*)retval;
         }
-        
-        return (PyObject*)retval;
-    }
-};
-
-struct SegmentMap_from_numpy_str {
-    static void* convertible(PyObject *o)
-    {
-        PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 2, NULL, NPY_UINT32, true))
-            return 0;
-
-        return (void*)o;
-    }
-
-    static void construct(PyObject *o,
-                          converter::rvalue_from_python_stage1_data* data)
-    {
-        void* storage = ((converter::rvalue_from_python_storage<d2d::SegmentMap>*)data)->storage.bytes;
-        PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) d2d::SegmentMap(ao->dimensions[0], ao->dimensions[1], 0);
-        d2d::SegmentMap* m = (d2d::SegmentMap*)storage;
-
-        data->convertible = storage;
-
-        for (int i=0; i<ao->dimensions[0]; i++) {
-            for (int j=0; j<ao->dimensions[1]; j++) {
-                m->m_data[i][j] = ((int*)ao->data)[i*ao->dimensions[1] + j];
-            }
+        else {
+            printf("OH NO! Tried to convert mxArray of nd %d to numpy!\n", 
+                   m.NDim);
         }
     }
+}; 
 
-    SegmentMap_from_numpy_str() 
-    {
-        converter::registry::push_back(&convertible, 
-                                       &construct, 
-                                       type_id<d2d::SegmentMap>());
-    }
-};
-
-struct SegmentMap_to_numpy_str {
-    static PyObject *convert(const d2d::SegmentMap &m) {
-        npy_intp dims[] = {m.getNumberRows(), m.getNumberCols()};
-        
-        PyArrayObject *retval;
-        
-        retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_INT32);
-        for (int i=0; i<dims[0]; i++) {
-            for (int j=0; j<dims[1];j++) {
-                ((int*)retval->data)[i*dims[1] + j] = m.getData()[i][j];
-            }
-        }
-        
-        return (PyObject*)retval;
-    }
-};
 
 struct mxArray_from_numpy_str {
     static void* convertible(PyObject *o)
@@ -245,229 +177,7 @@ struct mxArray_from_numpy_str {
     }
 };
 
-struct mxArray_to_numpy_str {
-    static PyObject *convert(const mxArray &m) {
-        if (m.NDim == 2) {
-            /* fucking column major bitches */ 
-            npy_intp dims[] = {m.Dims[0], m.Dims[1]};
-            
-            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
-            for (int i=0; i<dims[0]; i++) {
-                for (int j=0; j<dims[1]; j++) {
-                    real fake;
-                    ((real*)retval->data)[i*dims[1] + j] = m.get2D(i, j, fake);
-                }
-            }
-            
-            return (PyObject*)retval;
-        }
-        else if (m.NDim == 3) {
-            npy_intp dims[] = {m.Dims[0], m.Dims[1], m.Dims[2]};
-            
-            PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
-            for (int c=0; c<dims[2]; c++) {
-                for (int col=0; col<dims[1]; col++) {
-                    for (int row=0; row<dims[0]; row++) {
-                        real fake;
-                        ((real*)retval->data)[row*dims[1]*dims[2] + col*dims[2] + c] = \
-                            m.get3D(row, col, c, fake);
-                    }
-                }
-            }
-            return (PyObject*)retval;
-        }
-        else {
-            printf("OH NO! Tried to convert mxArray of nd %d to numpy!\n", 
-                   m.NDim);
-        }
-    }
-}; 
 
-struct LRgbImage_from_numpy_str {
-    static void* convertible(PyObject *o)
-    {
-        PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 3, NULL, NPY_UINT8, true))
-	    return 0;
-
-        return (void*)o;
-    }
-
-    static void construct(PyObject *o,
-                          converter::rvalue_from_python_stage1_data* data)
-    {
-        void* storage = ((converter::rvalue_from_python_storage<LRgbImage>*)data)->storage.bytes;
-        PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) LRgbImage(int(ao->dimensions[1]), 
-                                int(ao->dimensions[0]));
-        LRgbImage* lrgb = (LRgbImage*)storage;
-
-        data->convertible = storage;
-
-        for (int i=0; i<ao->dimensions[0]; i++) {
-            for (int j=0; j<ao->dimensions[1]; j++) {
-                for (int k=0; k<ao->dimensions[2]; k++) {
-                    (*lrgb)(j, i, k) = ((unsigned char*)ao->data)[i*ao->dimensions[1]*ao->dimensions[2] + 
-                                                                  j*ao->dimensions[2] +
-                                                                  k];
-                }
-            }
-        }
-    }
-
-    LRgbImage_from_numpy_str() 
-    {
-        converter::registry::push_back(&convertible, 
-                                       &construct, 
-                                       type_id<LRgbImage>());
-    }
-};
-
-struct LRgbImage_to_numpy_str {
-    static PyObject *convert(const LRgbImage &m) {
-        npy_intp dims[] = {m.GetHeight(), m.GetWidth(), 3};
-        
-        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, NPY_UINT8);
-
-        for (int i=0; i<dims[0]; i++) {
-            for (int j=0; j<dims[1];j++) {
-                for (int k=0; k<dims[2]; k++) {
-                    ((unsigned char*)retval->data)[i*dims[1]*dims[2] + 
-                                                   j*dims[2] + 
-                                                   k] = m(j, i, k);
-                }
-            }
-        }
-        
-        return (PyObject*)retval;
-    }
-};
-struct LLabImage_from_numpy_str {
-    static void* convertible(PyObject *o)
-    {
-        PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 3, NULL, npy_real_type(), true))
-            return 0;
-
-        return (void*)o;
-    }
-
-    static void construct(PyObject *o,
-                          converter::rvalue_from_python_stage1_data* data)
-    {
-        void* storage = ((converter::rvalue_from_python_storage<LLabImage>*)data)->storage.bytes;
-        PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) LLabImage(int(ao->dimensions[1]), 
-                                int(ao->dimensions[0]));
-        LLabImage* lrgb = (LLabImage*)storage;
-
-        data->convertible = storage;
-
-        for (int i=0; i<ao->dimensions[0]; i++) {
-            for (int j=0; j<ao->dimensions[1]; j++) {
-                for (int k=0; k<ao->dimensions[2]; k++) {
-                    (*lrgb)(j, i, k) = ((real*)ao->data)[i*ao->dimensions[1]*ao->dimensions[2] + 
-                                                         j*ao->dimensions[2] +
-                                                         k];
-                }
-            }
-        }
-    }
-
-    LLabImage_from_numpy_str() 
-    {
-        converter::registry::push_back(&convertible, 
-                                       &construct, 
-                                       type_id<LLabImage>());
-    }
-};
-
-struct LLabImage_to_numpy_str {
-    static PyObject *convert(const LLabImage &m) {
-        npy_intp dims[] = {m.GetHeight(), m.GetWidth(), 3};
-        
-        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
-
-        for (int i=0; i<dims[0]; i++) {
-            for (int j=0; j<dims[1];j++) {
-                for (int k=0; k<dims[2]; k++) {
-                    ((real*)retval->data)[i*dims[1]*dims[2] + 
-                                                   j*dims[2] + 
-                                                   k] = m(j, i, k);
-                }
-            }
-        }
-        
-        return (PyObject*)retval;
-    }
-};
-
-struct LColourImage_from_numpy_str {
-    static void* convertible(PyObject *o)
-    {
-        PyArrayObject *ao = (PyArrayObject*)o; 
-        
-        if (!numpy_satisfy_properties(ao, 3, NULL, NPY_UINT8, true))
-            return 0;
-
-        return (void*)o;
-    }
-
-    static void construct(PyObject *o,
-                          converter::rvalue_from_python_stage1_data* data)
-    {
-        void* storage = ((converter::rvalue_from_python_storage<LColourImage<unsigned char> >*)data)->storage.bytes;
-        PyArrayObject *ao = (PyArrayObject*)o;        
-
-        new (storage) LColourImage<unsigned char>(int(ao->dimensions[1]), 
-						  int(ao->dimensions[0]), 
-						  3);
-        LColourImage<unsigned char>* lrgb = (LColourImage<unsigned char>*)storage;
-
-        data->convertible = storage;
-
-        for (int i=0; i<ao->dimensions[0]; i++) {
-            for (int j=0; j<ao->dimensions[1]; j++) {
-                for (int k=0; k<ao->dimensions[2]; k++) {
-                    (*lrgb)(j, i, k) = ((unsigned char*)ao->data)[i*ao->dimensions[1]*ao->dimensions[2] + 
-                                                                  j*ao->dimensions[2] +
-                                                                  k];
-                }
-            }
-        }
-    }
-
-    LColourImage_from_numpy_str() 
-    {
-        converter::registry::push_back(&convertible, 
-                                       &construct, 
-                                       type_id<LColourImage<unsigned char> >());
-    }
-};
-
-struct LColourImage_to_numpy_str {
-    static PyObject *convert(const LColourImage<unsigned char> &m) {
-        npy_intp dims[] = {m.GetHeight(), m.GetWidth(), 3};
-        
-        PyArrayObject *retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
-
-        for (int i=0; i<dims[0]; i++) {
-            for (int j=0; j<dims[1];j++) {
-                for (int k=0; k<dims[2]; k++) {
-                    ((real*)retval->data)[i*dims[1]*dims[2] + 
-                                                   j*dims[2] + 
-                                                   k] = m(j, i, k);
-                }
-            }
-        }
-        
-        return (PyObject*)retval;
-    }
-};
  
 // template <typename T, typename U>
 // struct vec_vec_from_numpy_str {
@@ -538,26 +248,7 @@ struct vec_to_numpy_str {
         return (PyObject*)ao;
     }
 };
-MatrixMap numpy_to_matrixmap(PyObject *o)
-{
-    PyArrayObject *ao = (PyArrayObject*)o;
 
-    if (!numpy_satisfy_properties(ao, 2, NULL, NPY_INT32, true)) {
-        return MatrixMap();
-    }
-
-    vector<vector<int> > tmp(ao->dimensions[0], vector<int>(ao->dimensions[1]));    
-    for (int i=0; i<ao->dimensions[0]; i++) {
-	for (int j=0; j<ao->dimensions[1]; j++) {
-	    tmp[i][j] = ((int*)ao->data)[i*ao->dimensions[1] + j];
-	}
-    }
-
-    MatrixMap ret;
-    ret.assign(tmp);
-    
-    return ret;
-}
 
 PyObject *vecvec_to_numpy(const vector<const vector<real> *> v) 
 {
@@ -574,38 +265,6 @@ PyObject *vecvec_to_numpy(const vector<const vector<real> *> v)
     return (PyObject*)retval;
 }
 
-
-PyObject *matrixmap_to_numpy(MatrixMap &m) 
-{
-    npy_intp dims[] = {m.getNumberRows(), m.getNumberCols()};
-
-    PyArrayObject *retval;
-
-    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_INT32);
-    for (int i=0; i<dims[0]; i++) {
-	for (int j=0; j<dims[1];j++) {
-	    ((int*)retval->data)[i*dims[1] + j] = m.getData()[i][j];
-	}
-    }
-
-    return (PyObject*)retval;
-}
-
-PyObject* matrixuint_to_numpy(Matrix<unsigned int> &m) 
-{
-    npy_intp dims[] = {m.getNumberRows(), m.getNumberCols()};
-
-    PyArrayObject *retval;
-
-    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_UINT32);
-    for (int i=0; i<dims[0]; i++) {
-	for (int j=0; j<dims[1];j++) {
-	    ((unsigned int*)retval->data)[i*dims[1] + j] = m.getData()[i][j];
-	}
-    }
-
-    return (PyObject*)retval;
-}
 
 PyObject* mxarray2d_to_numpy(mxArray* arr)
 {
@@ -662,31 +321,6 @@ PyObject* mxarray3d_to_numpy(mxArray* arr)
     return (PyObject*)retval;
 }
 
-
-
-
-LRgbImage* numpy_to_lrgbimage(PyObject *o)
-{
-    PyArrayObject *ao = (PyArrayObject*)o;
-
-    if (!numpy_satisfy_properties(ao, 3, NULL, NPY_UINT8, true)) {
-        return NULL;
-    }
-    
-    LRgbImage *lrgb = new LRgbImage(int(ao->dimensions[1]), 
-				    int(ao->dimensions[0]));
-    
-    for (int i=0; i<ao->dimensions[0]; i++) {
-	for (int j=0; j<ao->dimensions[1]; j++) {
-	    for (int k=0; k<ao->dimensions[2]; k++) {
-		(*lrgb)(j, i, k) = ((unsigned char*)ao->data)[i*ao->dimensions[1]*ao->dimensions[2] + 
-							      j*ao->dimensions[2] +
-							      k];
-	    }
-	}
-    }
-    return lrgb;
-}
 
 
 vector<real> numpy_to_vec(PyObject *o) 

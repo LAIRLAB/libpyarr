@@ -9,10 +9,9 @@
 #include <boost/python/manage_new_object.hpp>
 #include <boost/python/copy_const_reference.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/overloads.hpp>
 
 #include <Python.h>
-
-#include <numpy/arrayobject.h>
 
 #include <string>
 #include <vector>
@@ -25,7 +24,7 @@
 #include <autogen.h>
 
 #include <boilerplate.h>
+#include <pyarr.h>
 
-void boost_him();
 void boost_common();
-void boost_ml();
+

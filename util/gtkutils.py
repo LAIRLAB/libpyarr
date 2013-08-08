@@ -146,59 +146,26 @@ class box_n_overlay_widget(cairo_drawingarea, cairo_zoomable_mixin):
 
         self.min_true_thresh = 0.0
 
-        (self.w, self.h) = getattr(self.mparent, self.pix_attr).shape[:2][::-1]
+        if self.pix_attr is not None:
+            (self.w, self.h) = getattr(self.mparent, self.pix_attr).shape[:2][::-1]
+        else:
+            (self.w, self.h) = (500,500)
 
-#        self.set_size_request(500, 500)
         self.set_size_request(self.w, self.h)
 
     def draw(self, cc, w, h):
         cc.scale(self.scale, self.scale)
         cc.translate(self.offset[0], self.offset[1])
 
-        
-        if self.show_gt and self.mparent.gt_arr is not None:
-            showarr = float32(getattr(self.mparent, self.pix_attr).copy())
-            
-            showarr[:,:,1] += 0.4*self.mparent.gt_arr
-            showarr[where(showarr > 255)] = 255
-            pbuf = make_pixbuf(uint8(showarr))
-
-        elif self.show_inf and self.mparent.inf_arr is not None:
-            # convert to float to prevent overflow
-            showarr = float32(getattr(self.mparent, self.pix_attr).copy())
-
-
-            showarr[:,:,0] += 0.4*self.mparent.inf_arr
-            showarr[where(showarr > 255)] = 255
-            pbuf = make_pixbuf(uint8(showarr))
-        elif hasattr(self.mparent, 'heatmap') and self.mparent.use_heatmap:
-            pbuf = make_pixbuf(self.mparent.heatmap)
-        else:
+        if self.pix_attr is not None:
             pbuf = make_pixbuf(getattr(self.mparent, self.pix_attr))
             
-        cc.set_source_pixbuf(pbuf, 0,0)
-        cc.paint()
-
-        def show_extra_bboxes(arr, r, g, b):
-            if arr is None: return
-            
-            labelarr, n_labels = label(arr)
-
-            cc.set_source_rgba(r, g, b, 1.0)
-            for i in range(n_labels):
-                inds = where(labelarr == i+1)
-                
-                cc.rectangle(inds[1].min(), inds[0].min(),
-                             inds[1].max()-inds[1].min(),
-                             inds[0].max()-inds[0].min())
-                cc.set_line_width(2.0)
-                cc.stroke()
-
-        if self.show_gt_bboxes: 
-            show_extra_bboxes(self.mparent.gt_arr, 0.0, 1.0, 0.0)
-
-        if self.show_inf_bboxes:
-            show_extra_bboxes(self.mparent.inf_arr, 1.0, 0.0, 0.0)
+            cc.set_source_pixbuf(pbuf, 0,0)
+            cc.paint()
+        else:
+            cc.set_source_rgb(255,255,255)
+            cc.rectangle(0, 0, self.w, self.h)
+            cc.fill()
 
         if self.boxlist_attr is None:
             return
@@ -236,6 +203,8 @@ class draggable_overlay(box_n_overlay_widget):
     def __init__(self, parent, box_attr=None, pix_attr='pixarr'):
         super(draggable_overlay, self).__init__(parent, box_attr, pix_attr)
 
+        self.can_focus = True
+
         self.cur_dragstart = None
         self.cur_box = None
         self.prev_box = None
@@ -258,6 +227,8 @@ class draggable_overlay(box_n_overlay_widget):
             cc.set_dash([1])
             cc.rectangle(*self.cur_box)
             cc.stroke()
+
+            cc.set_dash([])
 
     def on_press(self, widget, event):
         if event.button in [1,3]:
@@ -687,12 +658,15 @@ def loadwindow(load_cb):
     return textdialog("Load", load_cb)
 
 def crosshair(cc, x, y, size=0.5):
+    oldlw = cc.get_line_width()
     cc.set_line_width(size/3)
     cc.move_to(x,size+y)
     cc.line_to(x,-size+y)
     cc.move_to(size+x, y)
     cc.line_to(-size+x, y)
     cc.stroke()
+
+    cc.set_line_width(oldlw)
 
 def border(cc, x0=-1, y0=-1, h=2, w=2, color=(0,0,0), line_width=0.01):
     cc.set_source_rgb(*color)
