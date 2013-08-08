@@ -493,9 +493,17 @@ class BoundingBox(object):
           self.x : self.x + self.width] = 1
         return n
 
-def bounding_box_npy(arr):
+    def boundaries(self):
+        return [self.y, self.y + self.height, self.x, self.x + self.width]
+    
+
+def boundaries_npy(arr):
     a = numpy.argwhere(arr)
     (y_min, x_min), (y_max, x_max) = a.min(0), a.max(0) + 1
+    return (y_min, x_min), (y_max, x_max)
+
+def bounding_box_npy(arr):
+    (y_min, x_min), (y_max, x_max) = boundaries_npy(arr)
     return BoundingBox(x = x_min, 
                        y = y_min,
                        width = x_max - x_min,
@@ -540,3 +548,16 @@ def remove_small_regions(arr, min_size = 10, ignore = [0]):
 #     assert(len(chunks) == 3):
 #     for c in chunks:
         
+
+#returns 2^its  morphings
+def dilation_erosion_tree(arr, its = 2):
+    assert(its >= 1)
+    r = []
+    e = scipy.ndimage.binary_erosion(arr)
+    d = scipy.ndimage.binary_dilation(arr)
+    if its == 1:
+        return [d, e]
+    else:
+        r.extend(dilation_erosion_tree(d, its - 1))
+        r.extend(dilation_erosion_tree(e, its - 1))
+        return r

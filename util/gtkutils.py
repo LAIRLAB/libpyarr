@@ -285,7 +285,7 @@ def draw_histogram(cc, vec, height, norm=None, colors = [], text = False):
     cc.stroke()
     
     vec_max = height
-    if len(colors) != len(vec):
+    if len(colors) < len(vec):
         colors = [(1, 1, .4) for v in vec]
 
     for (i,v) in enumerate(vec):
