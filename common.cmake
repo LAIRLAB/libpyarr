@@ -95,5 +95,6 @@ ${REPO_ROOT}/him_2d/lib/
 /Developer/NVIDIA/CUDA-5.0/lib
 /opt/local/lib/apple-gcc42/gcc/i686-apple-darwin12/4.2.1/
 /usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/
+/usr/lib/x86_64-linux-gnu/
 /opt/local/lib
 )
