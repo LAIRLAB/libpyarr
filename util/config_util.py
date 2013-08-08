@@ -49,6 +49,7 @@ class PyConfigOverrider(object):
         self.p = argparse.ArgumentParser(formatter_class = argparse.\
                                              ArgumentDefaultsHelpFormatter)
         self.p.add_argument('-v', '--verbosity', default = 'info')
+        self.p.add_argument('--config-file', default = py_config_dict_fn)
         self.defaults = {}
         
         for (d_name, d) in pyconfig.config.items():
@@ -75,6 +76,8 @@ class ConfigPostparsers(object):
     # ['a', 'b', 'c'].. if the original list is provided and it's 
     # homogenous..:
     # list becomes [orig_type('a'), orig_type('b'), orig_type('c')]
+
+    #right now just leave them as strings
     def list_postparse(self, str_li, orig_list = []):
         li = str_li.split(',')
 
