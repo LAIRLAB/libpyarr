@@ -177,3 +177,57 @@ try:
 except:
     pass
     
+
+class DiskCache(object):
+    def __init__(self, d):
+        d = os.path.abspath(d)
+        if not os.path.isdir(d):
+            os.mkdir(d)
+        self.base = d
+
+    def load(self, b, identifier, rf, ext=''):
+        fn = self.base + '/{}_{}{}'.format(b, identifier, ext)
+        try:
+            x = rf(fn)
+            cpm.gcp.debug("Cache hit: {}".format(fn))
+            return x
+        except IOError:
+            cpm.gcp.msg("Cache miss: {}".format(fn))
+            return None
+
+    def save(self, obj, b, identifier, sf, ext = '', overwrite=False, reverse_sf = False):
+        fn = self.base + '/{}_{}{}'.format(b, identifier, ext)
+        if os.path.isfile(fn):
+            if not overwrite:
+                raise RuntimeError(\
+                    cpm.gcp.error("Not overwriting cached file!"))
+            else:
+                cpm.gcp.warning("Overwriting cached file!")
+
+        if reverse_sf:
+            sf(obj, fn)
+        else:
+            sf(fn, obj)
+        return True
+        
+
+#snippet for tracking open files        
+"""import __builtin__
+openfiles = set()
+oldfile = __builtin__.file
+class newfile(oldfile):
+    def __init__(self, *args):
+        self.x = args[0]
+        print "### OPENING %s ###" % str(self.x)            
+        oldfile.__init__(self, *args)
+        openfiles.add(self)
+
+    def close(self):
+        print "### CLOSING %s ###" % str(self.x)
+        oldfile.close(self)
+        openfiles.remove(self)
+oldopen = __builtin__.open
+def newopen(*args):
+    return newfile(*args)
+__builtin__.file = newfile
+__builtin__.open = newopen"""

@@ -56,7 +56,6 @@ void boost_common()
 
 }
 
-
 BOOST_PYTHON_MODULE(libboost_common) 
 {
     PyEval_InitThreads();

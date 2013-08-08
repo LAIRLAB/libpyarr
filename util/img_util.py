@@ -1,5 +1,6 @@
 #3rd party modules
 import os, Image, ImageDraw, numpy as np, scipy.misc
+import scipy.ndimage
 import matplotlib.pyplot as plt
 from pdbwrap import *
 import signal
@@ -97,39 +98,45 @@ def bulk_overlay(images, labels, colormap, out_fns, output_dir = 'bulk_overlayed
         overlayed = overlay_classification(im, label, colormap, alpha_im, alpha_color)
         Image.fromarray(overlayed).save('{}/{}'.format(output_dir, out_fn))
  
-def overlay_bboxes(pil_im, bboxes_alg_dict, **kwargs):
-    outlines = kwargs.get('outlines', ['blue' for b in range(len(bboxes_alg_dict.keys()))])
-    thickness = kwargs.get('thickness', 2)
-    for (key, n) in zip(bboxes_alg_dict.keys(), range(len(bboxes_alg_dict.keys()))):
-        for b in bboxes_alg_dict[key]:
-            cn = b.get_corners()
-            ImageDraw.Draw(pil_im).rectangle(b.get_corners(), outline = outlines[key], fill = None)
-            for t in range(thickness):
-                c2 = [(cn[0][0] + t, cn[0][1] + t),  (cn[1][0] + t, cn[1][1] + t)]
-                ImageDraw.Draw(pil_im).rectangle(c2, outline = outlines[key], fill = None)
+# def overlay_bboxes(pil_im, bboxes_alg_dict, **kwargs):
+#     outlines = kwargs.get('outlines', ['blue' for b in range(len(bboxes_alg_dict.keys()))])
+#     thickness = kwargs.get('thickness', 2)
+#     for (key, n) in zip(bboxes_alg_dict.keys(), range(len(bboxes_alg_dict.keys()))):
+#         for b in bboxes_alg_dict[key]:
+#             cn = b.get_corners()
+#             ImageDraw.Draw(pil_im).rectangle(b.get_corners(), outline = outlines[key], fill = None)
+#             for t in range(thickness):
+#                 c2 = [(cn[0][0] + t, cn[0][1] + t),  (cn[1][0] + t, cn[1][1] + t)]
+#                 ImageDraw.Draw(pil_im).rectangle(c2, outline = outlines[key], fill = None)
+#     return pil_im
+
+def overlay_bboxes(pil_im, bboxes):
+    for b in bboxes:
+        pil_im = overlay_bbox(pil_im, b)
     return pil_im
 
 def overlay_bbox(pil_im, bbox, **kwargs):
     cn = pil_im.__class__.__name__
-    if cn == 'Image':
+    if cn in ['Image', 'PngImageFile', 'JpegImageFile']:
         pass
     elif cn == 'ndarray':
+        if pil_im.ndim == 2:
+            #pil_im *= 255
+            pil_im = numpy.uint8(numpy.dstack((pil_im, pil_im, pil_im)))
         pil_im = Image.fromarray(pil_im)
     else:
-        raise ArgumentError("Can't deal with image of type: {}".format(cn))
+        raise RuntimeError("Can't deal with image of type: {}".format(cn))
 
     c = kwargs.get('outline', 'red')
     
     if hasattr(bbox, 'get_corners'):        
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox.get_corners)
-        #ImageDraw.Draw(pil_im).rectangle(bbox.get_corners(), outline = 'blue', width = kwargs.get('width', 2))
     elif hasattr(bbox, 'len') and len(bbox) == 4:
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox)
-        #ImageDraw.Draw(pil_im).rectangle(bbox, outline = 'blue', width = kwargs.get('width', 2))
     elif tu.hasattrs(bbox, ['x', 'y', 'width', 'height']):
-        bbox_coords = (bbox.x, bbox.y, bbox.x + bbox.width, bbox.y + bbox.height)
+        bbox_coords = (bbox.x, bbox.y, 
+                       bbox.x + bbox.width, bbox.y + bbox.height)
         nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox_coords)
-        #ImageDraw.Draw(pil_im).rectangle(bbox_coords, outline = 'blue', width = kwargs.get('width', 2))
     else:
         raise ValueError("Unsupported bounding box type")
     return numpy.asarray(pil_im).copy()
@@ -182,11 +189,30 @@ def rasterize_numpy(np):
     mi = np.min()
     ma = np.max()
     colormap = []
+    if np.ndim == 3:
+        return Image.fromarray(np)
+    if np.max() <= 1.0:
+        return rasterize_probmap(np)
     for i in range(mi, ma + 1):
         mapping = [i]
         mapping.extend(ru.random_8bit_rgb())
         colormap.append(mapping)
     return map_ascii_to_pil(np, colormap)
+
+def rasterize_objects(shape, objs):
+    z = numpy.zeros(shape, dtype = numpy.uint8)
+    for o in objs:
+        z[o] = 1
+    return rasterize_numpy(z)
+    
+
+def rasterize_probmap(pm):
+    if pm.max() <= 1.0:
+        return Image.fromarray(numpy.uint8(255 * pm))
+    elif pm.max() <= 255:
+        return Image.fromarray(numpy.uint8(pm))
+    else:
+        raise RuntimeError(cpm.gcp.error("unknown probmap type"))
     
 
 #requires a square integer image whose indices map to colors in a colormap object
@@ -441,32 +467,97 @@ def clip_bboxes(bboxes, shape):
         else:
             bbox.height = shape[0] - bbox.y - 1
 
+def segments_adjacent(segmap1, segmap2):
+    (la, num_labels) = scipy.ndimage.label(\
+        numpy.logical_or(segmap1, segmap2))
+    return num_labels < 2
 
-#this doesn't work
-class mac_tmp_display(object):
-    def __init__(self, im):
-        try:
-            im = Image.fromarray(im)
-        except:
-            pass
-        self.fn = ru.random_ascii_string(7) + '.png'
-        with open(self.fn, 'w') as f:
-            im.save(f)
-            f.flush()
-            os.fsync(f.fileno())
-            
-        while not os.path.isfile(self.fn):
-            pass
-        self.viewer = subprocess.Popen(['open', self.fn])
+class BoundingBox(object):
+    def __init__(self, x, y, width, height, score = None, type = None):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.score = score
+        self.type = type
+
+    def contains(self, x, y):
+        if x >= self.x and y >= self.y:
+            if x <= self.x + self.width and y <= self.y + self.height:
+                return True
+        return False
+
+    def npy_binary(self, shape):
+        n = numpy.zeros(shape, dtype=numpy.uint8)
+        n[self.y : self.y + self.height,
+          self.x : self.x + self.width] = 1
+        return n
+
+    def boundaries(self):
+        return [self.y, self.y + self.height, self.x, self.x + self.width]
+    
+
+def boundaries_npy(arr):
+    a = numpy.argwhere(arr)
+    (y_min, x_min), (y_max, x_max) = a.min(0), a.max(0) + 1
+    return (y_min, x_min), (y_max, x_max)
+
+def bounding_box_npy(arr):
+    (y_min, x_min), (y_max, x_max) = boundaries_npy(arr)
+    return BoundingBox(x = x_min, 
+                       y = y_min,
+                       width = x_max - x_min,
+                       height = y_max - y_min)
+
+def logical_centroid(arr):
+    if numpy.count_nonzero(arr) == 0:
+        return (None, None)
+    a = numpy.argwhere(arr)
+    (y_min, x_min), (y_max, x_max) = a.min(0), a.max(0) + 1
+    width = x_max - x_min
+    height = y_max - y_min
+    return (y_min + int(height / 2.0), x_min + int(width / 2.0))
+    
+#expects a labeled array
+def find_noncontiguous_objects(arr, ignore = [0], min_matching = 0):
+    assert(arr.size > 0)
+    assert(arr.dtype == numpy.uint8)
+    
+    ma = arr.max()
+    objects = []
+    for i in numpy.unique(arr):
+        if i in ignore:
+            continue
+
+        o = arr == i
+        if numpy.count_nonzero(o) > min_matching:
+            objects.append(o)
+    return objects
+    
+#expects a labeled array
+def remove_small_regions(arr, min_size = 10, ignore = [0]):
+    assert(arr.dtype == numpy.uint8)
+    for val in numpy.unique(arr):
+        if val in ignore:
+            continue
+        mask = arr == val
+        if numpy.count_nonzero(mask) < min_size:
+            arr[mask] = 0
+    
+# def render_3_chunks(im, chunks):
+#     assert(len(chunks) == 3):
+#     for c in chunks:
         
-    def destroy(self):
-        os.killpg(self.viewer.pid, signal.SIGKILL)
-        os.remove(self.fn)
 
-
-class tmp_display(object):
-    def __init__(self, im):
-        self.i = plt.imgshow(im)
-
-    def destroy(self):
-        plt.close()
+#returns 2^its  morphings
+def dilation_erosion_tree(arr, its = 2):
+    assert(its >= 1)
+    r = []
+    e = scipy.ndimage.binary_erosion(arr)
+    d = scipy.ndimage.binary_dilation(arr)
+    if its == 1:
+        return [d, e]
+    else:
+        r.extend(dilation_erosion_tree(d, its - 1))
+        r.extend(dilation_erosion_tree(e, its - 1))
+        return r
