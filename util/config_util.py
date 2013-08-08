@@ -58,13 +58,22 @@ class PyConfigOverrider(object):
                     action = 'store_true'
                 else:
                     action = 'store'
+
                     
                 cmd_str = k.replace('_', '-')
                 self.defaults[k] = v
-                self.p.add_argument('--{}'.format(cmd_str),
-                                    default = v,
-                                    action = action,
-                                    help = h)
+
+                if action == 'store':
+                    self.p.add_argument('--{}'.format(cmd_str),
+                                        type = type(v),
+                                        default = v,
+                                        action = action,
+                                        help = h)
+                else:
+                    self.p.add_argument('--{}'.format(cmd_str),
+                                        default = v,
+                                        action = action,
+                                        help = h)
 
 
 class ConfigPostparsers(object):
