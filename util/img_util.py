@@ -424,34 +424,6 @@ def get_segment_borders(np_map, val = 255):
     return npa
                     
                     
-#dont use this it has a hack          
-class IntegralImage(object):
-    def __init__(self, x):
-        self.ii = x.cumsum(1).cumsum(0)
-
-    def integrate(self, r0, c0, r1, c1):
-        S = 0
-        S += self.ii[r1, c1]
-
-        if (r0 - 1 >= 0) and (c0 - 1 >= 0):
-            S += self.ii[r0 - 1, c0 - 1]
-
-        if (r0 - 1 >= 0):
-            S -= self.ii[r0 - 1, c1]
-
-        if (c0 - 1 >= 0):
-            S -= self.ii[r1, c0 - 1]
-
-        return S
-
-    def integrate_box(self, b):
-        r0 = int(b.y)
-        c0 = int(b.x)
-        
-        #hack 
-        r1 = min(319, int(r0 + b.height))
-        c1 = min(319, int(c0 + b.width))
-        return self.integrate(r0, c0, r1, c1)
 
 def clip_bboxes(bboxes, shape):
     for bbox in bboxes:
@@ -561,3 +533,6 @@ def dilation_erosion_tree(arr, its = 2):
         r.extend(dilation_erosion_tree(d, its - 1))
         r.extend(dilation_erosion_tree(e, its - 1))
         return r
+
+def v(np):
+    rasterize_numpy(np).show()

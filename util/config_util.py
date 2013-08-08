@@ -146,3 +146,14 @@ class PyParserOverrider(object):
                 args.__dict__[k] = self.postparsers[orig_type](v,orig_item)
         cpm.gcp.set_verbosity(args.verbosity)
         return args
+
+class PyStoredConfig(object):
+    def __init__(self, path):
+        pyconfig = imp.load_source('pystoredconfig', path)
+
+        self.dict = {}
+        for (dname, d) in pyconfig.config.items():
+            for (k, (v, h)) in d.items():
+                setattr(self, k, v)
+
+                
