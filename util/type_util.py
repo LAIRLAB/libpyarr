@@ -44,3 +44,27 @@ def vec_vec_to_numpy(vvd):
         for j in range(len(x[i])):
             x[i][j] = vvd[i][j]
     return x
+
+
+def format_config_dict(nd, dname = 'config'):
+    s = ""
+
+    for (name, d) in nd.items():
+        assert(isinstance(d, dict))
+        s += "{} = {{\n".format(name)
+        for (k, (v, h)) in d.items():
+            if isinstance(v, str):
+                v = "'{}'".format(v)
+            s += "    '{}' : ({}, '{}')\n".format(k, v, h)
+        s = s[:-2] + '\n'
+        s += "    }\n\n"
+
+    s += "{} = {{\n".format(dname)
+    for (name, d) in nd.items():
+        s += "    '{}' : {},\n".format(name, name)
+        
+    s = s[:-2] + '\n    }\n'
+    return s
+
+
+            

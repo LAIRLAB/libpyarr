@@ -177,7 +177,6 @@ try:
 except:
     pass
     
-
 class DiskCache(object):
     def __init__(self, d):
         d = os.path.abspath(d)

@@ -44,16 +44,18 @@ class PyConfigOverrider(object):
         if not os.path.isfile(py_config_dict_fn):
             raise OSError(cpm.gcp.error(\
                     "Config didn't exist: {}".format(py_config_dict_fn)))
-        pyconfig = imp.load_source('pyconfig', py_config_dict_fn)
+        self.pyconfig = imp.load_source('pyconfig', py_config_dict_fn)
         
         self.p = argparse.ArgumentParser(formatter_class = argparse.\
                                              ArgumentDefaultsHelpFormatter)
         self.p.add_argument('-v', '--verbosity', default = 'info')
         self.p.add_argument('--config-file', default = py_config_dict_fn)
         self.defaults = {}
-        
-        for (d_name, d) in pyconfig.config.items():
+        self.helps = {}
+
+        for (d_name, d) in self.pyconfig.config.items():
             for (k, (v, h)) in d.items():
+                self.helps[k] = h
                 if isinstance(v, bool):
                     action = 'store_true'
                 else:
@@ -75,6 +77,18 @@ class PyConfigOverrider(object):
                                         action = action,
                                         help = h)
 
+    def update_config_dictionary(self, args):
+        new = {}
+        for (k, v) in args.__dict__.items():
+            for (d_name, d) in self.pyconfig.config.items():
+                if k in d:
+                    if d_name not in new:
+                        new[d_name] = {}
+                    new[d_name][k] = (v, self.helps[k])
+                    break
+                
+        self.new = new
+        return new
 
 class ConfigPostparsers(object):
     def __init__(self):
@@ -132,10 +146,11 @@ class PyParserOverrider(object):
 
         self.postparsers = ConfigPostparsers().postparsers
 
-    def parse(self):
+    def parse_and_update(self):
         args = self.parser.parse_args()
-        args = self.postparse(args)
-        return args
+        self.updated_config = self.pco.update_config_dictionary(args)
+        self.args = self.postparse(args)
+        return self.args, self.updated_config
 
     def postparse(self, args):
         for s in self.superparsers:
