@@ -56,11 +56,7 @@ class PyConfigOverrider(object):
         for (d_name, d) in self.pyconfig.config.items():
             for (k, (v, h)) in d.items():
                 self.helps[k] = h
-                if isinstance(v, bool):
-                    action = 'store_true'
-                else:
-                    action = 'store'
-
+                action = 'store'
                     
                 cmd_str = k.replace('_', '-')
                 self.defaults[k] = v
@@ -94,6 +90,7 @@ class ConfigPostparsers(object):
     def __init__(self):
         self.postparsers = {}
         self.postparsers[list] = self.list_postparse
+        self.postparsers[bool] = self.bool_postparse
 
     #convert a str 'a,b,c,...' to a list:
     # ['a', 'b', 'c'].. if the original list is provided and it's 
@@ -117,6 +114,9 @@ class ConfigPostparsers(object):
         #     for (e_idx, e) in enumerate(li):
         #         li[e_idx] = orig_type(e)
         return li
+
+    def bool_postparse(self, b, *args):
+        return bool(b)
 
 class abstract_superparser(object):
     @staticmethod
