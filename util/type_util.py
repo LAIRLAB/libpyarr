@@ -51,17 +51,30 @@ def format_config_dict(nd, dname = 'config'):
 
     for (name, d) in nd.items():
         assert(isinstance(d, dict))
-        s += "{} = {{\n".format(name)
-        for (k, (v, h)) in d.items():
+        x = "{} = {{".format(name)
+        s += x
+
+        il = len(x)
+        for (idx, (k, (v, h))) in enumerate(d.items()):
             if isinstance(v, str):
                 v = "'{}'".format(v)
-            s += "    '{}' : ({}, '{}')\n".format(k, v, h)
+            if idx == 0:
+                ril = 0
+            else:
+                ril = il
+            s += ' '*ril + "'{}' : ({}, '{}'),\n".format(k, v, h)
         s = s[:-2] + '\n'
         s += "    }\n\n"
 
-    s += "{} = {{\n".format(dname)
-    for (name, d) in nd.items():
-        s += "    '{}' : {},\n".format(name, name)
+    y =  "{} = {{".format(dname)
+    s += y
+    il = len(y)
+    for (idx, (name, d)) in enumerate(nd.items()):
+        if idx == 0:
+            ril = 0
+        else:
+            ril = il
+        s += ' '*ril + "'{}' : {},\n".format(name, name)
         
     s = s[:-2] + '\n    }\n'
     return s

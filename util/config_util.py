@@ -171,6 +171,19 @@ class PyParserOverrider(object):
         cpm.gcp.set_verbosity(args.verbosity)
         return args
 
+    @staticmethod
+    def strip_config_help(c):
+        nc = {}
+        for (d_name, d) in c.items():
+            if d_name == 'metadata':
+                nc[d_name] = d
+                continue
+            nd = {}
+            for (k, (v, h)) in d.items():
+                nd[k] = v
+            nc[d_name] = nd
+        return nc
+
 class PyStoredConfig(object):
     def __init__(self, path):
         pyconfig = imp.load_source('pystoredconfig', path)
