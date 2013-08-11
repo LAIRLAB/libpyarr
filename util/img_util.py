@@ -185,8 +185,8 @@ def pil_to_pixmap(im):
     image = QImage(data, im.size[0], im.size[1], QImage.Format_ARGB32)
     return QPixmap.fromImage(image)
     
-def rasterize_numpy(np):
-    mi = np.min()
+def rasterize_numpy(np, white_labels = [255]):
+    mi = min(0, np.min())
     ma = np.max()
     colormap = []
     if np.ndim == 3:
@@ -195,7 +195,10 @@ def rasterize_numpy(np):
         return rasterize_probmap(np)
     for i in range(mi, ma + 1):
         mapping = [i]
-        mapping.extend(ru.random_8bit_rgb())
+        if i in white_labels:
+            mapping.extend([255, 255, 255])
+        else:
+            mapping.extend(ru.random_8bit_rgb())
         colormap.append(mapping)
     return map_ascii_to_pil(np, colormap)
 
@@ -536,3 +539,9 @@ def dilation_erosion_tree(arr, its = 2):
 
 def v(np):
     rasterize_numpy(np).show()
+
+def gen_location_cb(arr):
+    def print_location(l, *args):
+        print arr[l[1], l[0]]
+    return print_location
+

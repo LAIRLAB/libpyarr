@@ -1,7 +1,14 @@
 import color_printer as cpm
-import os, sys, type_util, datetime, Image, numpy, img_util, cPickle
+import os, sys, type_util, datetime, Image, numpy, img_util, cPickle, pdb
+
+rm_rf_fixed = False
 
 def savez_dir(dirname, arr):
+    if not rm_rf_fixed:
+        cpm.gcp.error("RM -RF is used in this function. not a good idea. tracing..." + \
+                          " once fixed, set rm_rf_fixed=True and type 'c' to continue" +\
+                          " or restart your program")
+        pdb.set_trace()
     try:
         os.system('rm -rf %s'%dirname)
     except:
