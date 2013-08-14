@@ -1,0 +1,5 @@
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+export LIBNREC_ROOT=$CURRENT_DIR
+export PATH=$LIBNREC_ROOT:$PATH
+export PYTHONPATH=$LIBNREC_ROOT/lib:$PYTHONPATH
