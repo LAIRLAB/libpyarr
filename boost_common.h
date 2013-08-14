@@ -9,6 +9,7 @@
 #include <boost/python/manage_new_object.hpp>
 #include <boost/python/copy_const_reference.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python/overloads.hpp>
 
 #include <Python.h>

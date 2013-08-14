@@ -23,8 +23,11 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.so;.a")
 set(BUILD_SHARED_LIBS ON)
 set(CMAKE_COMPILER_IS_GNUCXX ON)
 
+set(OLD_REPOROOT ${REPO_ROOT})
+set(REPO_ROOT $ENV{LIBNREC_ROOT}/..)
+
 include_directories(${REPO_ROOT}/misc_util/include
-${REPO_ROOT}/common
+$ENV{LIBNREC_ROOT}
 ${REPO_ROOT}/hog
 ${REPO_ROOT}/3rd_party/misc/eigen3/include
 ${REPO_ROOT}/scene_analysis/scene_analysis_2d/include/
@@ -98,3 +101,5 @@ ${REPO_ROOT}/him_2d/lib/
 /usr/lib/x86_64-linux-gnu/
 /opt/local/lib
 )
+
+set(REPO_ROOT OLD_REPOROOT)
