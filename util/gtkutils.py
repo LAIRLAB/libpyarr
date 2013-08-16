@@ -315,8 +315,6 @@ class boxlabel_widget(draggable_overlay):
                        height = self.cur_box[3], 
                        type=boxtype,
                        score=1.0)
-            log[self.curlabel_attr]
-            log[getattr(self.mparent, self.curlabel_attr)]
             self.cur_box = None
 
             getattr(self.mparent, self.curlabel_attr)[r.type].append(r)
