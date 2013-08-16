@@ -255,3 +255,20 @@ def on(color_code):
 
 def off():
     print "\033[0m\r",
+
+def gtime(f, *args, **kwargs):
+    ts = time.time()
+    r = f(*args, **kwargs)
+
+    if inspect.ismethod(f):
+        class_name = f.__self__.__class__.__name__ + '.'
+    else:
+        class_name = ''
+    gcp.time("{}{} function took {:.3f} seconds".format(
+            class_name,
+            f.__name__,
+            time.time() - ts))
+    return r
+
+
+

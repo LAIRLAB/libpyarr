@@ -4,6 +4,10 @@ import scipy.ndimage
 import matplotlib.pyplot as plt
 from pdbwrap import *
 import signal
+try:
+    import skimage.measure
+except ImportError:
+    print "aw geez no skimage.measure..."
 
 import color_printer as cpm
 import verify_util as vu
@@ -60,6 +64,7 @@ def overlay_best_classification(image, segmentation, probabilities, colormap, al
 
 def overlay_classification(image, labels, colormap, alpha_im = 0.4, alpha_color = 0.6,
                            image_view_map = None):
+    image = image.copy()
     if image_view_map is None:
         image_view = image
         labels_view = labels
@@ -185,7 +190,8 @@ def pil_to_pixmap(im):
     image = QImage(data, im.size[0], im.size[1], QImage.Format_ARGB32)
     return QPixmap.fromImage(image)
     
-def rasterize_numpy(np, white_labels = [255]):
+
+def rasterize_numpy(np, blacks = [0]):
     mi = min(0, np.min())
     ma = np.max()
     colormap = []
@@ -195,10 +201,10 @@ def rasterize_numpy(np, white_labels = [255]):
         return rasterize_probmap(np)
     for i in range(mi, ma + 1):
         mapping = [i]
-        if i in white_labels:
-            mapping.extend([255, 255, 255])
-        else:
+        if i not in blacks:
             mapping.extend(ru.random_8bit_rgb())
+        else:
+            mapping.extend([0, 0, 0])
         colormap.append(mapping)
     return map_ascii_to_pil(np, colormap)
 
@@ -496,7 +502,7 @@ def logical_centroid(arr):
 #expects a labeled array
 def find_noncontiguous_objects(arr, ignore = [0], min_matching = 0):
     assert(arr.size > 0)
-    assert(arr.dtype == numpy.uint8)
+    assert(arr.dtype == numpy.uint8 or arr.dtype == numpy.int32)
     
     ma = arr.max()
     objects = []
@@ -511,7 +517,7 @@ def find_noncontiguous_objects(arr, ignore = [0], min_matching = 0):
     
 #expects a labeled array
 def remove_small_regions(arr, min_size = 10, ignore = [0]):
-    assert(arr.dtype == numpy.uint8)
+    assert(tu.is_numpy_int(arr))
     for val in numpy.unique(arr):
         if val in ignore:
             continue
@@ -544,4 +550,120 @@ def gen_location_cb(arr):
     def print_location(l, *args):
         print arr[l[1], l[0]]
     return print_location
+
+
+def rasterize_top_3_chunks(chunks, im):
+    imc = im.copy()
+    overlay = numpy.zeros(im.shape, dtype = numpy.uint8)
+    for(c_idx, c) in enumerate(chunks):
+        overlay[:, :, c_idx] = .4*255*c.map
+        
+    imc = numpy.uint8(.4*imc + .6*overlay)
+    vv = rasterize_numpy(imc)
+    #vv.show()
+    return vv
+
+def nullify_borders(arr):
+    arr[:, 0] = 0
+    arr[:, -1] = 0
+
+    arr[0, :] = 0
+    arr[-1, :] = 0
+
+def shape_feature(binary_im):
+    def null_feature():
+        cm_blank = [-1]*9
+        c_blank = [-1, -1]
+        e_blank = [-1]
+        ca_blank = [-1]
+        hu_blank = [-1]*7
+        eu_blank = [-1]
+        maxl = [-1]
+        minl = [-1]
+        o = [-1]
+        p = [0]
+        f = []
+        f.extend(cm_blank)
+        f.extend(c_blank)
+        f.extend(e_blank)
+        f.extend(ca_blank)
+        f.extend(eu_blank)
+        f.extend(hu_blank)
+        f.extend(maxl)
+        f.extend(minl)
+        f.extend(o)
+        f.extend(p)
+        return f
+
+    nullify_borders(binary_im)
+    if binary_im.max() == binary_im.min():
+        return null_feature()
+
+    properties = [#4th order central moments
+                  'CentralMoments', 
+
+                  #centroid
+                  'Centroid',    
+
+                  #area in convex boundary
+                  'ConvexArea',  
+
+                  #Eccentricity of the ellipse that has the same 
+                  #second-moments as the region. 
+                  'Eccentricity', 
+
+                  #Euler number of region. 
+                  #Computed as number of objects (= 1)
+                  #subtracted by number of holes (8-connectivity).
+                  'EulerNumber', 
+
+                  #Ratio of pixels in the region to pixels in 
+                  #the total bounding box. Computed as Area / (rows*cols)
+                  'Extent', 
+
+                  #Hu moments (translation, scale and rotation invariant).
+                  'HuMoments', 
+
+                  #The length of the major axis of the ellipse
+                  #that has the same normalized 
+                  'MajorAxisLength', 
+
+                  #The length of the minor axis of the ellipse 
+                  #that has the same normalized second central moments as 
+                  #the region.
+                  'MinorAxisLength', 
+
+                  #Angle between the X-axis and the major axis of the 
+                  #ellipse that has the same second-moments as the region.
+                  #Ranging from -pi/2 to pi/2 in counterclockwise direction.
+                  'Orientation',
+
+                  'Perimeter']
+    
+
+    try:
+        x = skimage.measure.regionprops(numpy.int32(binary_im), 
+                                        properties = properties)
+    except RuntimeError:
+        return null_feature()
+    x = x[0]
+    
+    f = []
+    cm = x['CentralMoments'][:3, :3].flatten().tolist()
+    c = list(x['Centroid'])
+    ca = x['ConvexArea']
+    e = x['Eccentricity']
+    eu = x['EulerNumber']
+    hm = x['HuMoments'].flatten().tolist()
+    mal = x['MajorAxisLength']
+    mial = x['MinorAxisLength']
+    o = x['Orientation']
+    p = x['Perimeter']
+    
+    f.extend(cm)
+    f.extend(c)
+    f.extend([ca, e, eu, mal, mial, o, p])
+    f.extend(hm)
+    return f
+    
 

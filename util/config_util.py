@@ -1,5 +1,6 @@
 import argparse, ast, os, imp, pdb
 import common.util.color_printer as cpm
+import common.util.type_util as tu
 
 def cast(s):
     try:
@@ -60,18 +61,17 @@ class PyConfigOverrider(object):
                     
                 cmd_str = k.replace('_', '-')
                 self.defaults[k] = v
-
-                if action == 'store':
-                    self.p.add_argument('--{}'.format(cmd_str),
-                                        type = type(v),
-                                        default = v,
-                                        action = action,
-                                        help = h)
+                if type(v) not in [bool]:
+                    t = type(v)
                 else:
-                    self.p.add_argument('--{}'.format(cmd_str),
-                                        default = v,
-                                        action = action,
-                                        help = h)
+                    t = None
+
+
+                self.p.add_argument('--{}'.format(cmd_str),
+                                    type = t,
+                                    default = v,
+                                    action = action,
+                                    help = h)
 
     def update_config_dictionary(self, args):
         new = {}
@@ -97,26 +97,25 @@ class ConfigPostparsers(object):
     # homogenous..:
     # list becomes [orig_type('a'), orig_type('b'), orig_type('c')]
 
-    #right now just leave them as strings
     def list_postparse(self, str_li, orig_list = []):
         li = str_li.split(',')
 
-        # orig_types = {}
-        # for oe in orig_list:
-        #     orig_types[type(oe)] = True
-        # if len(orig_types.items()) == 1:
-        #     homog = True
-        #     orig_type = orig_types.keys()[0]
-        # else:
-        #     homog = False
+        orig_types = {}
+        for oe in orig_list:
+            orig_types[type(oe)] = True
+        if len(orig_types.items()) == 1:
+            homog = True
+            orig_type = orig_types.keys()[0]
+        else:
+            homog = False
             
-        # if homog:
-        #     for (e_idx, e) in enumerate(li):
-        #         li[e_idx] = orig_type(e)
+        if homog:
+            for (e_idx, e) in enumerate(li):
+                li[e_idx] = orig_type(e)
         return li
 
     def bool_postparse(self, b, *args):
-        return bool(b)
+        return tu.str_bool_cast(b)
 
 class abstract_superparser(object):
     @staticmethod
@@ -147,9 +146,9 @@ class PyParserOverrider(object):
         self.postparsers = ConfigPostparsers().postparsers
 
     def parse_and_update(self):
-        args = self.parser.parse_args()
-        self.updated_config = self.pco.update_config_dictionary(args)
+        args = self.parser.parse_known_args()[0]
         self.args = self.postparse(args)
+        self.updated_config = self.pco.update_config_dictionary(self.args)
         return self.args, self.updated_config
 
     def postparse(self, args):

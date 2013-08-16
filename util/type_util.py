@@ -4,6 +4,7 @@ try:
     from util import color_printer as cp
 except:
     import color_printer as cp
+import color_printer as cpm
 
 def ensure_string(item):
     if isinstance(item,str):
@@ -79,5 +80,24 @@ def format_config_dict(nd, dname = 'config'):
     s = s[:-2] + '\n    }\n'
     return s
 
+def is_numpy_int(arr):
+    return (arr.dtype == numpy.int8 or
+            arr.dtype == numpy.int32 or
+            arr.dtype == numpy.int64 or
+            arr.dtype == numpy.uint8 or
+            arr.dtype == numpy.uint16 or
+            arr.dtype == numpy.uint32 or
+            arr.dtype == numpy.uint64)
 
+def str_bool_cast(s):
+    sl = s.lower()
+    if sl == 'true':
+        return True
+    elif sl == 'false':
+        return False
+    else:
+        raise RuntimeError(cpm.gcp.error(\
+                "Can't cast string to bool: {}".format(s)))
+    
+            
             

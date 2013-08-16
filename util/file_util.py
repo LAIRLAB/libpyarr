@@ -185,13 +185,23 @@ except:
     pass
     
 class DiskCache(object):
-    def __init__(self, d):
+    def __init__(self, d, loadable = True):
         d = os.path.abspath(d)
         if not os.path.isdir(d):
             os.mkdir(d)
         self.base = d
+        self.loadable = loadable
+
+    def __repr__(self):
+        s = "DiskCache\n"
+        s += "\tBase dir: {}\n".format(self.base)
+        s += "\tLoadable: {}".format(self.loadable)
+        return s
 
     def load(self, b, identifier, rf, ext=''):
+        if not self.loadable:
+            cpm.gcp.warning("Not loading from cache")
+            return None
         fn = self.base + '/{}_{}{}'.format(b, identifier, ext)
         try:
             x = rf(fn)

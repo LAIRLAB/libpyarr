@@ -951,6 +951,8 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
         self.mparent.add_dependent(self.changed)
         self.set_size_request(360, 240)
         self.connect('button_press_event', pdbwrap(self.on_press))
+        #self.connect('button-release-event', pdbwrap(self.on_release))
+        #self.connect('motion-notify-event', pdbwrap(self.on_motion))
         self.click_cb = click_cb
 
     def draw(self, cc, w, h):
@@ -982,6 +984,7 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
 
             cpm.gcp.info("\n\tclick location: {}\n\tval:{}".format(loc,
                                                                val))
+            self.path = [loc]
             if self.click_cb is not None:
                 self.click_cb(loc)
         #self.mparent.click_cb(self, location)
@@ -990,3 +993,14 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
         #self.mparent.toggle_cb(self, location)
 
 
+    # def on_motion(self, widget, event):
+    #     loc = (int(event.y, event.x))
+    #     self.path.extend(loc)
+
+    # def on_release(self, widget, event):
+    #     self.path.extend((int(event.y), int(event.x)))
+    #     print self.path
+    #     return self.path
+        
+               
+               
