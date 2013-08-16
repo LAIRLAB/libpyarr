@@ -1,0 +1,17 @@
+You need the following libraries:
+
+If you use macports: 
+sudo port selfupdate
+sudo port install cmake py27-pygtk, py27-cairo, py27-numpy, py27-scipy, boost +python27, py27-pil
+
+If you use apt: 
+sudo apt-get update
+sudo apt-get install python2.7-dev python-gtk2 python-scipy python-cairo libboost-python-dev libboost-system-dev
+libboost-thread-dev python-imaging cmake 
+
+Then, do 
+
+source env.sh
+./build.py
+
+And you should be set. 
