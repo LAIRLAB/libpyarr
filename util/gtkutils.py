@@ -248,6 +248,80 @@ class draggable_overlay(box_n_overlay_widget):
         self.cur_dragstart = None
         
 
+class boxlabel_widget(draggable_overlay):
+    def __init__(self, parent, boxlist_attr=None, pix_attr='pixarr', 
+                 curlabel_attr=None):
+        super(boxlabel_widget, self).__init__(parent, boxlist_attr, pix_attr)
+
+        self.add_events(gtk.gdk.KEY_PRESS_MASK)
+        self.connect('key_press_event', pdbwrap(self.key_cb))
+
+        self.curlabel_attr = curlabel_attr
+        self.selected_box = None
+
+    def key_cb(self, widget, event):
+        if (event.keyval == gtk.accelerator_parse('Delete')[0] and
+            self.selected_box is not None):
+            for k in getattr(self.mparent, self.curlabel_attr).keys():
+                for (i,x) in enumerate(getattr(self.mparent, self.curlabel_attr)[k]):
+                    if x == self.selected_box:
+                        del getattr(self.mparent, self.curlabel_attr)[k][i]
+                        self.selected_box = None
+                        self.mparent.changed()
+                        break
+        
+        return True
+
+    def draw(self, cc, w, h):
+        super(boxlabel_widget, self).draw(cc, w, h)
+
+        if self.selected_box is not None:
+            cc.set_source_rgba(1,1,1,0.4)
+            cc.rectangle(self.selected_box.x, 
+                         self.selected_box.y, 
+                         self.selected_box.width,
+                         self.selected_box.height)
+            cc.fill()
+            
+    def on_press(self, widget, event):
+        super(boxlabel_widget, self).on_press(widget, event)
+
+        if event.button == 2:
+            boxlist = [x for y in getattr(self.mparent, self.curlabel_attr).values() for x in y]
+            new_boxlist = boxlist
+            for i in xrange(len(boxlist)):
+                if (event.x >= boxlist[i].x and 
+                    event.x <= boxlist[i].x + boxlist[i].width and
+                    event.y >= boxlist[i].y and 
+                    event.y <= boxlist[i].y + boxlist[i].height):
+                    self.selected_box = boxlist[i]
+                    self.queue_draw()
+                    break
+
+    def on_release(self, widget, event):
+        super(boxlabel_widget, self).on_release(widget, event)
+
+        if event.button in [1,3]:
+            if self.cur_box is None:
+                return
+
+            boxtype = (self.mparent.button_dict[event.button]
+                       if hasattr(self.mparent, 'button_dict') else
+                       getattr(self.mparent, self.curlabel_attr).keys()[0])
+
+            r = Struct(x=self.cur_box[0],
+                       y=self.cur_box[1],
+                       width = self.cur_box[2],
+                       height = self.cur_box[3], 
+                       type=boxtype,
+                       score=1.0)
+            log[self.curlabel_attr]
+            log[getattr(self.mparent, self.curlabel_attr)]
+            self.cur_box = None
+
+            getattr(self.mparent, self.curlabel_attr)[r.type].append(r)
+            self.mparent.changed()
+
 
 def draw_histogram(cc, vec, height, norm=None, colors = [], text = False):
     cc.set_line_width(0.005)        
