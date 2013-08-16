@@ -2,7 +2,7 @@
 
 import gen_boilerplate as gen
 import argparse, os, sys
-from pdbwrap import *
+from util.pdbwrap import *
 
 def main():
     parser = argparse.ArgumentParser()

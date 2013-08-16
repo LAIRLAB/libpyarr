@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 2.4.6)
 
-#set root of repository variable
-set(REPO_ROOT_RELATIVE "../")
-get_filename_component(REPO_ROOT ${REPO_ROOT_RELATIVE} ABSOLUTE)
-message("Root of repository: " ${REPO_ROOT})
-
 include(common.cmake)
 include(boost_util.cmake)
 
