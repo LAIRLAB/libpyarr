@@ -25,4 +25,11 @@ set(LIBNREC $ENV{LIBNREC_ROOT})
 include_directories(${LIBNREC}/
   ${LIBNREC}/include)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3 -g -DUNIX")
+
+if ($ENV{CMAKE_USE_FLOATS} STREQUAL "YES")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FLOATS")
+endif()
+
+
 include(${LIBNREC}/boost_util.cmake)

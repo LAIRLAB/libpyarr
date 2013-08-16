@@ -790,10 +790,31 @@ def crosshair(cc, x, y, size=0.5):
 
     cc.set_line_width(oldlw)
 
+def grid(cc, x0, y0, x1, y1, shape, lw=1):
+    xx, yx, xy, yy, x0, y0 = cc.get_matrix()
+    scale = (xx+yy)/2.0
+    oldlw = cc.get_line_width()
+    cc.set_line_width(lw / scale)
+    for i in xrange(shape[0]):
+        cc.move_to(x0 + i*(x1-x0)*1.0/shape[0], 
+                   y0)
+        cc.line_to(x0 + i*(x1-x0)*1.0/shape[0], 
+                   y1)
+        
+    for j in xrange(shape[1]):
+        cc.move_to(x0,
+                   y0 + j*(y1-y0)*1.0/shape[1])
+        cc.line_to(x1,
+                   y0 + j*(y1-y0)*1.0/shape[1])
+    cc.stroke()
+    cc.set_line_width(oldlw)
+        
+            
+
 def border(cc, x0=-1, y0=-1, h=2, w=2, color=(0,0,0), line_width=0.01):
     cc.set_source_rgb(*color)
     cc.set_line_width(0.01)
-    cc.rectangle(-1,-1,2,2)
+    cc.rectangle(x0, y0, h, w)
     cc.stroke()
     
 def scatterplot(cc, samples, color=(1,0,0), radius=0.02):

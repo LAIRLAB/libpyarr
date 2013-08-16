@@ -1,7 +1,5 @@
 #include <boost_common.h>
 #include <boilerplate.h>
-#include <v_regressor/v_random_forest.h>
-#include <pclassifier/boosted_maxent.h>
 
 #include <boilerplate.cpp>
 
