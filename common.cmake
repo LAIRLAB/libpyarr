@@ -67,7 +67,8 @@ if ($ENV{CMAKE_USE_FLOATS} STREQUAL "YES")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FLOATS")
 endif()
 
-link_directories(${REPO_ROOT}/misc_util/lib
+link_directories($ENV{LIBNREC_ROOT}/lib
+${REPO_ROOT}/misc_util/lib
 ${REPO_ROOT}/common/lib
 ${REPO_ROOT}/hog/lib
 ${REPO_ROOT}/scene_analysis/scene_analysis_2d/lib/
