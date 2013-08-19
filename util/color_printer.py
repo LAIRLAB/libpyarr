@@ -195,6 +195,9 @@ class ColorPrinter(object):
             print fmt
         return s
 
+    def gtime(self, *args, **kwargs):
+        gtime(*args, **kwargs)
+
     #copy any old log info to a new log, and set logfile to that.
     #mostly useful for the global colorprinter
     def branch_log(self, new_log_fn, remove_old = False):
