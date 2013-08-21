@@ -1,8 +1,8 @@
 import os, sys, smtplib, signal, argparse
 
-import common.util.file_util as fu
-import common.util.misc_util as mu
-import common.util.color_printer as cpm
+import libnrec.util.file_util as fu
+import libnrec.util.misc_util as mu
+import libnrec.util.color_printer as cpm
 
 from email.mime.text import MIMEText
 

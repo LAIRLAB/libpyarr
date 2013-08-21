@@ -33,3 +33,4 @@ endif()
 
 
 include(${LIBNREC}/boost_util.cmake)
+link_directories(${LIBNREC}/lib)
