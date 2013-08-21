@@ -7,4 +7,4 @@ def main():
     module = importlib.import_module(sys.argv[1])
     sys.argv = sys.argv[1:]
     module.main()
-profwrap(main)()
+pdbwrap(main)()
