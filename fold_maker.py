@@ -2,11 +2,11 @@
 import os, sys, argparse, random
 import copy
 
-from common.util.pdbwrap import *
-import common.util.color_printer as cpm
-import common.util.file_util as fu
+from libnrec.util.pdbwrap import *
+import libnrec.util.color_printer as cpm
+import libnrec.util.file_util as fu
 import him_2d.him_util as hu
-import common.util.img_util as iu
+import libnrec.util.img_util as iu
 
 class FoldMaker(object):
     def __init__(self, image_dir, gt_dir, split_ratio, number_of_folds = 3, unsup_ratio = None):
