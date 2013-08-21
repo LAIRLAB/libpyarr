@@ -1,6 +1,6 @@
 import argparse, ast, os, imp, pdb
-import common.util.color_printer as cpm
-import common.util.type_util as tu
+import libnrec.util.color_printer as cpm
+import libnrec.util.type_util as tu
 
 def cast(s):
     try:

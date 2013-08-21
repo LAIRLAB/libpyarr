@@ -8,7 +8,7 @@ from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureC
 
 from pdbwrap import *
 from vis_util import *
-import common.util.color_printer as cpm
+import libnrec.util.color_printer as cpm
 
 font_str = "Tahoma 8.4"
 
