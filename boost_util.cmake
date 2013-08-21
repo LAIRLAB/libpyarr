@@ -33,7 +33,7 @@ if (NOT APPLE)
      message("Python libs: " ${PYTHON_LIBRARIES})
      message("Python include dir: " ${PYTHON_INCLUDE_DIRS})
    endif()
-
+   include_directories(/usr/include/python2.7)
 endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
