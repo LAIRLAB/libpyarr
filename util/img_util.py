@@ -513,6 +513,7 @@ def find_noncontiguous_objects(arr, ignore = [0], min_matching = 0):
         o = arr == i
         if numpy.count_nonzero(o) > min_matching:
             objects.append(o)
+    objects.sort(key = lambda o: numpy.count_nonzero(o), reverse = True)
     return objects
     
 #expects a labeled array
