@@ -49,8 +49,11 @@ void boost_common()
         ;
 
 
+    /* elliot thinks this causes massive breakage */
+#if 1
     to_python_converter<vector<real>, vec_to_numpy_str>();
     vec_from_numpy_str();
+#endif
 
 }
 
