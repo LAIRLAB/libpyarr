@@ -616,6 +616,7 @@ def rasterize_top_n_chunks(chunks, im, n = None):
 
     num_overlays = min(len(chunks), n)
     for (chunk, color) in zip(chunks[:num_overlays], colormap[:num_overlays]):
+<<<<<<< HEAD
         if hasattr(chunk, 'map'):
             m = chunk.map
         elif isinstance(chunk, numpy.ndarray):
@@ -626,6 +627,10 @@ def rasterize_top_n_chunks(chunks, im, n = None):
 
         overlay[numpy.where(m > 0)] += [.4*c for c in color]
         
+=======
+        overlay[numpy.where(chunk.map > 0)] += [.4*c for c in color]
+
+>>>>>>> img util updates: rasterizing, bboxes, and chunks
     imc = numpy.uint8(overlay + .6*imc)
     return imc
 
