@@ -37,6 +37,8 @@ def load_basename(prefix, mode='RGB'):
             if im.mode != 'RGB':
                 im = None
                 continue
+            else:
+                break
         except IOError:
             continue
 

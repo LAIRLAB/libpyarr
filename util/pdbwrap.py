@@ -2,7 +2,7 @@
 
 import traceback, pdb, sys, hotshot, os
 
-import common.util.color_printer as cpm
+import libnrec.util.color_printer as cpm
 
 global profdict
 
@@ -72,7 +72,7 @@ def debug(on = True, *exceptions):
 def pdbwrap_email(f, subject, recipients):
     '''A utility for dropping out to a debugger and emailing on exceptions.'''
 
-    import common.util.himmailer as hm
+    import libnrec.util.himmailer as hm
     def fdebug(*a, **kw):
         try:
             return f(*a, **kw)

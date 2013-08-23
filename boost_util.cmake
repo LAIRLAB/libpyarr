@@ -17,7 +17,7 @@ if (NOT APPLE)
    #set(PYTHON_MIN_VERSION "2.7")
    set(OLD_PYLIBS ${PYTHON_LIBRARIES})
    set(OLD_PYINCDIRS ${PYTHON_INCLUDE_DIRS})
-   execute_process(COMMAND "python" "${REPO_ROOT}/common/find_epd.py" "${PYTHON_MIN_VERSION}" OUTPUT_VARIABLE PYTHON_LIBRARIES ERROR_VARIABLE PYTHON_INCLUDE_DIRS)
+   execute_process(COMMAND "python" "$ENV{LIBNREC_ROOT}/find_epd.py" "${PYTHON_MIN_VERSION}" OUTPUT_VARIABLE PYTHON_LIBRARIES ERROR_VARIABLE PYTHON_INCLUDE_DIRS)
 
    if("${PYTHON_LIBRARIES}" STREQUAL "")
      message("ERROR No python libraries found!!!")
@@ -33,7 +33,7 @@ if (NOT APPLE)
      message("Python libs: " ${PYTHON_LIBRARIES})
      message("Python include dir: " ${PYTHON_INCLUDE_DIRS})
    endif()
-
+   include_directories(/usr/include/python2.7)
 endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
