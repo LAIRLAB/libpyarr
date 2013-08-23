@@ -161,6 +161,7 @@ def imresize(arr, size=None, **kwargs):
     verb = kwargs.get('verb', 'info')
     scale = kwargs.get('scale', None)
     mode = kwargs.get('mode', None)
+    arr = arr.copy()
     
     if scale is not None and scale > 0:
         size = (int(round(arr.shape[0]*scale)),
@@ -192,6 +193,9 @@ def pil_to_pixmap(im):
     
 
 def rasterize_numpy(np, blacks = [0]):
+    if np.dtype == numpy.bool:
+        np = numpy.uint8(np)
+
     mi = min(0, np.min())
     ma = np.max()
     colormap = []
@@ -468,6 +472,14 @@ class BoundingBox(object):
                 return True
         return False
 
+    def intify(self):
+        self.x = int(self.x)
+        self.y = int(self.y)
+        self.width = int(self.width)
+        self.height = int(self.height)
+        
+        
+
     def npy_binary(self, shape):
         n = numpy.zeros(shape, dtype=numpy.uint8)
         n[self.y : self.y + self.height,
@@ -552,6 +564,28 @@ def gen_location_cb(arr):
         print arr[l[1], l[0]]
     return print_location
 
+def rasterize_top_n_chunks(chunks, im, n):
+    imc = im.copy()
+    overlay = numpy.zeros(im.shape, dtype = numpy.uint8)
+    colormap = [(255, 0, 0),
+                (0, 255, 0),
+                (0, 0, 255),
+                (255, 255, 0),
+                (255, 0, 255),
+                (0, 255, 255),
+                (128, 0, 0),
+                (0, 128, 0),
+                (0, 0, 128)]
+    ncolors = len(colormap)
+    for i in range(n - ncolors):
+        colormap.append(tuple(ru.random_8bit_rgb()))
+
+    num_overlays = min(len(chunks), n)
+    for (chunk, color) in zip(chunks[:num_overlays], colormap[:num_overlays]):
+        overlay[numpy.where(chunk.map > 0)] += [.4*c for c in color]
+
+    imc = numpy.uint8(overlay + .6*imc)
+    return imc
 
 def rasterize_top_3_chunks(chunks, im):
     imc = im.copy()
