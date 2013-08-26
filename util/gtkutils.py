@@ -737,7 +737,8 @@ def textdialog(title, okcallback):
 
     entry = gtkentry(ok_buttoncb)
     
-    container = gtkvb(entry,
+    container = gtkvb(gtkhb(gtklabel(title), 
+                            entry),
                       gtkhb(gtkbutton("Cancel", 
                                       cancel_cb),
                             gtkbutton("OK",
@@ -792,7 +793,7 @@ def crosshair(cc, x, y, size=0.5):
     cc.set_line_width(oldlw)
 
 def grid(cc, x0, y0, x1, y1, shape, lw=1):
-    xx, yx, xy, yy, x0, y0 = cc.get_matrix()
+    xx, yx, xy, yy, xoff, yoff = cc.get_matrix()
     scale = (xx+yy)/2.0
     oldlw = cc.get_line_width()
     cc.set_line_width(lw / scale)
