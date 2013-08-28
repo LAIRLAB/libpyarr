@@ -982,9 +982,6 @@ class imshow(draggable_overlay, cairo_zoomable_mixin):
         cc.set_source_pixbuf(make_pixbuf(getattr(self.mparent, self.attr)), 0, 0)
         cc.paint()
 
-    def changed(self, what=None):
-        self.queue_draw()
-
     def on_press(self, widget, event):
         location = (int(event.x), int(event.y))
 

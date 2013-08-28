@@ -61,7 +61,12 @@ def get_best_labels(segmentation, segmentwise_probabilities):
     best_labels = numpy.uint8(prob_map.argmax(axis=2))
     return best_labels
 
-def overlay_best_classification(image, segmentation, probabilities, colormap, alpha_im = .4, alpha_color = .6):
+def overlay_best_classification(image, 
+                                segmentation, 
+                                probabilities, 
+                                colormap, 
+                                alpha_im = .4, 
+                                alpha_color = .6):
     best_labels = get_best_labels(segmentation, probabilities)
     return overlay_classification(image, best_labels, colormap, alpha_im, alpha_color)
 
@@ -81,7 +86,13 @@ def probmap_to_heatmap(image_shape, prob_map, label_idx):
     hm = numpy.uint8(255*numpy.reshape(prob_map[:, label_idx], image_shape))
     return hm
 
-def bulk_heatmap_overlay(images, heatmaps, out_fns, output_dir = 'bulk_overlayed', alpha_im = .4, alpha_color = .6, max_norm = True):
+def bulk_heatmap_overlay(images, 
+                         heatmaps, 
+                         out_fns, 
+                         output_dir = 'bulk_overlayed', 
+                         alpha_im = .4, 
+                         alpha_color = .6, 
+                         max_norm = True):
     assert(alpha_im + alpha_color == 1)
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
@@ -98,7 +109,13 @@ def bulk_heatmap_overlay(images, heatmaps, out_fns, output_dir = 'bulk_overlayed
         overlayed = numpy.uint8(alpha_im * im + numpy.dstack((null_channel, null_channel, alpha_color * (hm / m))))
         Image.fromarray(overlayed).save('{}/{}'.format(output_dir, out_fn))
 
-def bulk_overlay(images, labels, colormap, out_fns, output_dir = 'bulk_overlayed', alpha_im = .4, alpha_color = .6):
+def bulk_overlay(images, 
+                 labels, 
+                 colormap, 
+                 out_fns, 
+                 output_dir = 'bulk_overlayed',
+                 alpha_im = .4, 
+                 alpha_color = .6):
     assert(alpha_im + alpha_color == 1)
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
@@ -161,7 +178,6 @@ def nonshitty_rectangle(draw_inst, bbox, width = 2, outline = 'blue'):
 
 def imresize(arr, size=None, **kwargs):
     interp = kwargs.get('interp', Image.BILINEAR)
-    verb = kwargs.get('verb', 'info')
     scale = kwargs.get('scale', None)
     mode = kwargs.get('mode', None)
     arr = arr.copy()
@@ -185,7 +201,8 @@ def imresize(arr, size=None, **kwargs):
         print "Gotta specify a size or a scale to imresize."
         raise ValueError
     
-    ret = numpy.array(Image.fromarray(arr, mode=mode).resize(new_size, interp), copy = True)
+    ret = numpy.array(Image.fromarray(arr, mode=mode).resize(new_size, interp), 
+                      copy = True)
 
     return ret
 
