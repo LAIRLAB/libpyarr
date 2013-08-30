@@ -1,4 +1,5 @@
 import color_printer as cpm
+import type_util as tu
 import os, sys, type_util, datetime, Image, numpy, img_util, cPickle, pdb
 
 rm_rf_fixed = False
@@ -36,7 +37,16 @@ def loadz_dir(dirname):
     return numpy.concatenate([numpy.load(f)['arr_0'] for f in arrfiles], 
                              axis=0)
 
-def load_pkl(fname):
+def load_pkl(fname, mod_class_dict = {}):
+    if isinstance(mod_class_dict, dict):
+        for (m, classes) in mod_class_dict.items():
+            mod = __import__(m, fromlist=classes)
+            tu.add_classes_to_main(mod.__name__, classes)
+    elif isinstance(mod_class_dict, tuple):
+        m, classes = mod_class_dict[0], mod_class_dict[1]
+        mod = __import__(m, fromlist=classes)
+        tu.add_classes_to_main(mod.__name__, classes)
+        
     f = open(fname)
     ret = cPickle.load(f)
     f.close()
@@ -225,7 +235,6 @@ class DiskCache(object):
         else:
             sf(fn, obj)
         return True
-        
 
 #snippet for tracking open files        
 """import __builtin__

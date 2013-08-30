@@ -148,7 +148,10 @@ class ColorPrinter(object):
         def build_log_level_method(log_type):
             return lambda self, string: self.log(string, 
                                                  log_type, 
-                                                 modname = inspect.getmodule(inspect.stack()[1][0]).__name__)
+                                                 modname = \
+                                                     inspect.getmodule(inspect.stack()[1][0]).__name__ if  \
+                                                     hasattr(inspect.getmodule(inspect.stack()[1][0]), '__name__') else 'None')
+
 
         # this used to import type_util, but circular dependencies + macropy + boost python + typedef float real
         # = segfault on import

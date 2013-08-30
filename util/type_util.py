@@ -21,6 +21,10 @@ def add_method(self, method, name=None):
         name = method.func_name
     setattr(self.__class__, name, method)
 
+def add_classes_to_main(module, names):
+    for name in names:
+        setattr(sys.modules['__main__'], name, getattr(sys.modules[module], name))
+
 def isinstance_cn(x, t):
     return x.__class__.__name__ == t
 

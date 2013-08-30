@@ -137,13 +137,13 @@ def overlay_bbox(pil_im, bbox, **kwargs):
     c = kwargs.get('outline', 'red')
     
     if hasattr(bbox, 'get_corners'):        
-        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox.get_corners)
+        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox.get_corners, outline = c)
     elif hasattr(bbox, 'len') and len(bbox) == 4:
-        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox)
+        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox, outline = c)
     elif tu.hasattrs(bbox, ['x', 'y', 'width', 'height']):
         bbox_coords = (bbox.x, bbox.y, 
                        bbox.x + bbox.width, bbox.y + bbox.height)
-        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox_coords)
+        nonshitty_rectangle(ImageDraw.Draw(pil_im), bbox_coords, outline = c)
     else:
         raise ValueError("Unsupported bounding box type")
     return numpy.asarray(pil_im).copy()
