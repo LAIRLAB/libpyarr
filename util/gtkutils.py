@@ -570,51 +570,80 @@ def gtkvb(*widgets):
     gtkpack(ret, *widgets)
     return ret
 
-def gtkscrolledwindow(widget):
+def gtkscrolledwindow(widget, size_request=None):
+    """Take any widget and make it scrollable. 
+This means you can pack lots of widgets together in a way that
+would make an excessively huge and unshrinkable window, but 
+then have it be shrinkable."""
     ret = gtk.ScrolledWindow()
     #ret.set_border_width(10)
     ret.set_policy(gtk.POLICY_AUTOMATIC, 
                    gtk.POLICY_AUTOMATIC)
     ret.add_with_viewport(widget)
+
+    if size_request is not None:
+        ret.set_size_request(*size_request)
     widget.show()
     
     return ret
 
 
-def gtklv(*widget_lists):
-    lstore = gtk.ListStore(*[type(i) for i in widget_lists[0][:2]])
-    for w in widget_lists:
-        lstore.append(w[:2])
-            
-            
-    tv = gtk.TreeView(model=lstore)
-    sel = tv.get_selection()
-    sel.set_mode(gtk.SELECTION_MULTIPLE)
-    def selection_cb(sel, model, path, is_selected, data):
+class gtklv(object):
+    """Conveniently create a gtk.TreeView of a gtk.ListStore. 
+
+Takes a list of lists; each list represents an entry, e.g.:
+[['hi', gtkcolor(255, 255, 255), selected_cb]
+ ...]
+
+'hi' is the name of the entry, the middle thing is the color of the entry, 
+(in RGB values from 0 to 255) and the cb is a function that gets called 
+with a boolean argument True if that entry is selected. 
+
+If instantiated with empty=True, it just uses the widget_lists to specify 
+the types of the two columns and ignores the actual content of said lists. 
+"""
+    def __init__(self, widget_lists, empty=False):
+        lstore = gtk.ListStore(*[type(i) for i in widget_lists[0][:2]])
+        for w in widget_lists[1:]:
+            lstore.append(w[:2])
+
+        self.widget_lists = list(widget_lists)
+
+        self.tv = gtk.TreeView(model=lstore)
+        sel = self.tv.get_selection()
+        sel.set_mode(gtk.SELECTION_MULTIPLE)
+        sel.set_select_function(self.selection_cb, None, True)
+
+        cols = []
+        cells = []
+        for w in self.widget_lists[0][:2]:
+            cols.append(gtk.TreeViewColumn('Label'))
+            self.tv.append_column(cols[-1])
+            cells.append(gtk.CellRendererText())
+            cols[-1].pack_start(cells[-1])
+
+        for i in range(len(self.widget_lists[0][:2])):
+            if type(self.widget_lists[0][i]) == type('hi'):
+                cols[i].add_attribute(cells[i], 'text', i)
+            elif type(self.widget_lists[0][i]) == gtk.gdk.Color:
+                cols[i].add_attribute(cells[i], 'cell-background-gdk', i)
+            else:
+                print "oh no", type(self.widget_lists[0][i])
+
+    def selection_cb(self, sel, model, path, is_selected, data):
         # oddly, pygtk sets the is_selected argument to True
         # if it just got deselected, and False otherwise.
         # i think it's supposed to be telling you the previous state. 
-        widget_lists[path[0]][2](not(is_selected))
+        self.widget_lists[path[0]][2](not(is_selected))
         return True
-    sel.set_select_function(selection_cb, None, True)
-    cols = []
-    cells = []
-    for w in widget_lists[0][:2]:
-        cols.append(gtk.TreeViewColumn('Label'))
-        tv.append_column(cols[-1])
-        cells.append(gtk.CellRendererText())
-        cols[-1].pack_start(cells[-1])
-    for i in range(len(widget_lists[0][:2])):
-        if type(widget_lists[0][i]) == type('hi'):
-            print "hi"
-            cols[i].add_attribute(cells[i], 'text', i)
-        elif type(widget_lists[0][i]) == gtk.gdk.Color:
-            cols[i].add_attribute(cells[i], 'cell-background-gdk', i)
-        else:
-            print "oh no", type(widget_lists[0][i])
-            
-    
-    return tv
+
+    def add_entry(self, widget_list):
+        self.widget_lists.append(widget_list)
+        lstore = self.tv.get_model()
+        lstore.append(widget_list[:2])
+        
+        
+
 
 def gtknb(*widgets):
     """Pack a bunch of (name, widget) tuples into a notebook of tabs."""
