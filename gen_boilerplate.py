@@ -59,9 +59,11 @@ def gen_everything():
     things = [pyarr_converter('int', 'NPY_INT32'),
               pyarr_converter('short', 'NPY_INT16'),
               pyarr_converter('unsigned int', 'NPY_UINT32'),
+              pyarr_converter('unsigned short', 'NPY_UINT16'),
               pyarr_converter('double', 'NPY_FLOAT64'),
               pyarr_converter('float', 'NPY_FLOAT32'),
-              pyarr_converter('unsigned char', 'NPY_UINT8')]
+              pyarr_converter('unsigned char', 'NPY_UINT8'),
+              pyarr_converter('char', 'NPY_INT8')]
     things += classes
     things += vecs
 
