@@ -566,7 +566,10 @@ def gen_location_cb(arr):
         print arr[l[1], l[0]]
     return print_location
 
-def rasterize_top_n_chunks(chunks, im, n):
+def rasterize_top_n_chunks(chunks, im, n = None):
+    if n is None:
+        n = len(chunks)
+
     imc = im.copy()
     overlay = numpy.zeros(im.shape, dtype = numpy.uint8)
     colormap = [(255, 0, 0),
@@ -584,8 +587,16 @@ def rasterize_top_n_chunks(chunks, im, n):
 
     num_overlays = min(len(chunks), n)
     for (chunk, color) in zip(chunks[:num_overlays], colormap[:num_overlays]):
-        overlay[numpy.where(chunk.map > 0)] += [.4*c for c in color]
+        if hasattr(chunk, 'map'):
+            m = chunk.map
+        elif isinstance(chunk, numpy.ndarray):
+            m = chunk
+        else:
+            raise RuntimeError(cpm.gcp.error(\
+                    "unrecognized chunk type to rasterize: {}".format(type(chunk))))
 
+        overlay[numpy.where(m > 0)] += [.4*c for c in color]
+        
     imc = numpy.uint8(overlay + .6*imc)
     return imc
 
@@ -704,3 +715,6 @@ def shape_feature(binary_im):
     return f
     
 
+def iu(a, b):
+    return float(numpy.logical_and(a, b).sum()) / float(numpy.logical_or(a, b).sum() + sys.float_info.epsilon)
+    

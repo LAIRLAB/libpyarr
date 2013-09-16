@@ -722,6 +722,7 @@ def gtkentry(cb, default_text=""):
 
     return e
 
+
 def textdialog(title, okcallback):
     win = gtk.Window()
     win.set_title(title)

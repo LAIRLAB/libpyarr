@@ -104,4 +104,9 @@ def str_bool_cast(s):
                 "Can't cast string to bool: {}".format(s)))
     
             
-            
+#safe floating-point division
+def sfdivide(a, b):
+    r =  a / float(b + numpy.finfo(numpy.double).eps)
+    if b == 0:
+        cpm.gcp.warning("division by 0! ({} / {})".format(a, b))
+    return r
