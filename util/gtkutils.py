@@ -260,17 +260,21 @@ class boxlabel_widget(draggable_overlay):
         self.selected_box = None
 
     def key_cb(self, widget, event):
-        if (event.keyval == gtk.accelerator_parse('Delete')[0] and
+        if ((event.keyval == gtk.accelerator_parse('Delete')[0] or
+             event.keyval == gtk.accelerator_parse('BackSpace')[0]) and 
             self.selected_box is not None):
-            for k in getattr(self.mparent, self.curlabel_attr).keys():
-                for (i,x) in enumerate(getattr(self.mparent, self.curlabel_attr)[k]):
-                    if x == self.selected_box:
-                        del getattr(self.mparent, self.curlabel_attr)[k][i]
-                        self.selected_box = None
-                        self.mparent.changed()
-                        break
-        
+            (k,i) = self.get_box_keyind(self.selected_box)
+            del getattr(self.mparent, self.curlabel_attr)[k][i]
+            self.selected_box = None
+            self.mparent.changed()
         return True
+
+    def get_box_keyind(self, box):
+        for k in getattr(self.mparent, self.curlabel_attr).keys():
+            for (i,x) in enumerate(getattr(self.mparent, self.curlabel_attr)[k]):
+                if x == self.selected_box:
+                    return (k,i)
+
 
     def draw(self, cc, w, h):
         super(boxlabel_widget, self).draw(cc, w, h)
@@ -287,14 +291,17 @@ class boxlabel_widget(draggable_overlay):
         super(boxlabel_widget, self).on_press(widget, event)
 
         if event.button == 2:
+            # this is completely insane; the 'for x in y' clause is INSIDE
+            # the 'for y in whatever' clause; x loops over y, and y 
+            # was extracted from whatever. 
             boxlist = [x for y in getattr(self.mparent, self.curlabel_attr).values() for x in y]
-            new_boxlist = boxlist
             for i in xrange(len(boxlist)):
                 if (event.x >= boxlist[i].x and 
                     event.x <= boxlist[i].x + boxlist[i].width and
                     event.y >= boxlist[i].y and 
                     event.y <= boxlist[i].y + boxlist[i].height):
                     self.selected_box = boxlist[i]
+                    
                     self.queue_draw()
                     break
 
