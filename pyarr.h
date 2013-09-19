@@ -115,7 +115,7 @@ class pyarr {
     T* data;
     vector<long int> dims;
 
-    pyarr() {printf("pyarr blank constructor\n");
+    pyarr() {
         ao = NULL;}
     pyarr(PyArrayObject *_ao)
         : ao(_ao) {
@@ -200,7 +200,8 @@ class pyarr {
         //printf("pyarr destructor\n");
 #pragma omp critical (_pyarr) 
         {
-            Py_DECREF(ao);
+	    if (ao != NULL) 
+		Py_DECREF(ao);
         }
     }
 

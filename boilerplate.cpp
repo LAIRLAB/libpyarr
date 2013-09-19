@@ -348,6 +348,3 @@ PyObject* vec_to_numpy(vector<real> v)
     
     return (PyObject*)ao;
 }
-
-
-

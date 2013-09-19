@@ -16,7 +16,10 @@ def profwrap(f):
 
         prof = profdict[f.__name__]
 
-        return prof.runcall(f, *a, **kw)
+        #def x():
+        prof.runcall(f, *a, **kw)
+        #prof.close()
+        #return x
 
     return pdbwrap(fprof)
 
