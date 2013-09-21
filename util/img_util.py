@@ -566,6 +566,16 @@ def gen_location_cb(arr):
         print arr[l[1], l[0]]
     return print_location
 
+good_colormap = [(255, 0, 0),
+                (0, 255, 0),
+                (0, 0, 255),
+                (255, 255, 0),
+                (255, 0, 255),
+                (0, 255, 255),
+                (128, 0, 0),
+                (0, 128, 0),
+                (0, 0, 128)]
+
 def rasterize_top_n_chunks(chunks, im, n = None):
     if n is None:
         n = len(chunks)
@@ -718,3 +728,11 @@ def shape_feature(binary_im):
 def iu(a, b):
     return float(numpy.logical_and(a, b).sum()) / float(numpy.logical_or(a, b).sum() + sys.float_info.epsilon)
     
+def segmap_all_neighbors(seg):
+    neighbors = {}
+    for seg_idx in range(seg.max() + 1):
+        sm = seg == seg_idx
+        dil = scipy.ndimage.binary_dilation(sm)
+        neighbors[seg_idx] = numpy.unique(seg[dil])
+    return neighbors
+
