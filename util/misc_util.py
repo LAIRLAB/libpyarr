@@ -1,6 +1,10 @@
 import web_util as wu
 import os
 import getpass
+import numpy
+import type_util as tu
+import libnrec.util.color_printer as cpm
+
 def get_user_at_ip():
     user = getpass.getuser()
     ip = web_util.get_ip_address()
@@ -41,4 +45,44 @@ def zip_dicts(*args):
         all_vals.append(vals)
     return all_vals
     
-            
+
+import collections
+import functools
+
+
+class memoized(object):
+    '''Decorator. Caches a function's return value each time it is called.
+    If called later with the same arguments, the cached value is returned
+    (not reevaluated). Uses type util to define custom hashes
+    '''
+    def __init__(self, func):
+        self.func = func
+        self.cache = {}
+    def __call__(self, *args):
+        t = type(args)
+        if not isinstance(args, collections.Hashable) and t not in tu.hash_d:
+            # uncacheable. a list, for instance.
+            # better to not cache than blow up.
+            cpm.gcp.warning("type not hashable: {}".format(t))
+            return self.func(*args)
+        elif t in tu.hash_d:
+            h = tu.hash_d[t](args)
+        else:
+            h = args
+
+        if h in self.cache:
+            cpm.gcp.debug("hash found: {}".format(h))
+            return self.cache[h]
+        else:
+            cpm.gcp.debug("hash not found: {}".format(h))
+            value = self.func(*args)
+            self.cache[h] = value
+            return value
+
+    def __repr__(self):
+        '''Return the function's docstring.'''
+        return self.func.__doc__
+
+    def __get__(self, obj, objtype):
+        '''Support instance methods.'''
+        return functools.partial(self.__call__, obj)            

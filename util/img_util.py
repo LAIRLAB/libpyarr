@@ -12,6 +12,7 @@ except ImportError:
 import color_printer as cpm
 import verify_util as vu
 import type_util as tu
+import misc_util as mu
 import rand_util as ru
 import pdb
 import subprocess
@@ -375,7 +376,7 @@ def get_segment_borders(np_map, val = 255):
                     if (not flag_counted[r][c]):
                         flag_counted[r][c] = 1
                         perimeter_pixels[segment_a].append(r * cols + c)
-                        npa[r][c] = val
+                        #npa[r][c] = val
 
                     if (not flag_counted[r_r][c_r]):
                         flag_counted[r_r][c_r] = 1
@@ -394,7 +395,7 @@ def get_segment_borders(np_map, val = 255):
                         if (not flag_counted[r][c]):
                             flag_counted[r][c] = 1
                             perimeter_pixels[segment_a].append(r * cols + c)
-                            npa[r][c] = val
+                            #npa[r][c] = val
 
                         if (not flag_counted[r_dl][c_dl]):
                             flag_counted[r_dl][c_dl] = 1
@@ -410,7 +411,7 @@ def get_segment_borders(np_map, val = 255):
                     if (not flag_counted[r][c]):
                         flag_counted[r][c] = 1
                         perimeter_pixels[segment_a].append(r * cols + c)
-                        npa[r][c] = val
+                        #npa[r][c] = val
 
                     if (not flag_counted[r_d][c_d]):
                         flag_counted[r_d][c_d] = 1
@@ -426,12 +427,12 @@ def get_segment_borders(np_map, val = 255):
                         if (not flag_counted[r][c]):
                             flag_counted[r][c] = 1
                             perimeter_pixels[segment_a].append(r * cols + c)
-                            npa[r][c] = 1
+                            #npa[r][c] = val
 
                         if (not flag_counted[r_dr][c_dr]):
                             flag_counted[r_dr][c_dr] = 1
                             perimeter_pixels[segment_dr].append(r_dr * cols + c_dr)
-                            npa[r_dr][c_dr] = 1
+                            npa[r_dr][c_dr] = val
 
             #end down
         #end cols
@@ -504,6 +505,7 @@ def bounding_box_npy(arr):
                        width = x_max - x_min,
                        height = y_max - y_min)
 
+@mu.memoized
 def logical_centroid(arr):
     if numpy.count_nonzero(arr) == 0:
         return (None, None)

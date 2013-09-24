@@ -1,4 +1,4 @@
-import os, sys, inspect, pdb, numpy
+import os, sys, inspect, pdb, numpy, hashlib
 
 try:
     from util import color_printer as cp
@@ -110,3 +110,35 @@ def sfdivide(a, b):
     if b == 0:
         cpm.gcp.warning("division by 0! ({} / {})".format(a, b))
     return r
+
+
+def hash_ndarray(a):
+    return hashlib.sha1(a.view(numpy.float64)).hexdigest()
+
+def hash_list(l):
+    hl = []
+    for x in l:
+        t = type(x)
+        if t not in hash_d:
+            raise KeyError(cpm.gcp.error("list entry type: {} not hashable".format(t)))
+        hl.append(hash_d[t](x))
+    t = tuple(hl)
+    return hash_d[tuple](t)
+
+def hash_tuple(t):
+    try:
+        return hash(t)
+    except TypeError:
+        hl = []
+        for x in t:
+            xt = type(x)
+            if xt not in hash_d:
+                raise KeyError(cpm.gcp.error("tuple entry type: {} not hashable".format(xt)))
+            hl.append(hash_d[xt](x))
+        rt = tuple(hl)
+        return hash_d[tuple](rt)
+
+
+hash_d = {numpy.ndarray : hash_ndarray,
+          list : hash_list,
+          tuple : hash_tuple}
