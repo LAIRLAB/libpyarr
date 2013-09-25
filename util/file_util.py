@@ -24,7 +24,7 @@ def savez_dir(dirname, arr):
                                    ...])
 def loadz_dir(dirname):
     files = [f for f in os.listdir(dirname) if f[-4:] == '.npz']
-    arrfiles = [d + '/arr_%d.npz'%i for i in xrange(len(files))]
+    arrfiles = [dirname + '/arr_%d.npz'%i for i in xrange(len(files))]
     
     if len(arrfiles) != len(files):
         print "oh no there's crap in a savearr dir:", dirname
