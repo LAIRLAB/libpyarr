@@ -184,16 +184,17 @@ class pyarr {
     pyarr& operator=(const pyarr<T>& o) {
 #pragma omp critical (_pyarr)
         {
-        //printf("pyarr operator=\n");
-        if (ao != NULL) 
-            Py_DECREF(ao);
-
-        ao = o.ao;
-        dims = o.dims;
-        data = o.data;
-
-        Py_INCREF(ao);
-    }
+            //printf("pyarr operator=\n");
+            if (ao != NULL) 
+                Py_DECREF(ao);
+            
+            ao = o.ao;
+            dims = o.dims;
+            data = o.data;
+            
+            Py_INCREF(ao);
+        }
+        return *this;
     }
         
     ~pyarr() {

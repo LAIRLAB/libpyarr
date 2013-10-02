@@ -1,6 +1,4 @@
 #! /usr/bin/env python
-
-from libnrec.util.pdbwrap import *
 import pdb
 
 global cls_reg

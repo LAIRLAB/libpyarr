@@ -1,8 +1,6 @@
 #! /usr/bin/env python
-
-import gen_boilerplate as gen
 import argparse, os, sys
-from util.pdbwrap import *
+import gen_boilerplate as gen
 
 def main():
     parser = argparse.ArgumentParser()
@@ -24,4 +22,4 @@ def main():
         os.system('rm -rf CMakeFiles/ CMakeCache.txt Makefile bin lib')
 
 if __name__=='__main__':
-    pdbwrap(main)()
+    main()
