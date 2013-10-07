@@ -23,6 +23,9 @@ void foo(pyarr<int> myarr)
     }
 }
 
+The ind(i,j) syntax works for arrays of up to 4 dimensions; above that you can 
+access the data pointer directly with myarr.data. 
+
 To create a new uninitialized numpy array in C++ and return it: 
 
 pyarr<unsigned char> bar() 
@@ -53,3 +56,15 @@ target_link_libraries(my_cpp_module boost_common ${Boost_LIBRARIES} ${PYTHON_LIB
 Then your new library will be in lib/, and you can either add an __init__.py file to your lib/ 
 directory, copy said library somewhere else, or add your lib/ directory to your $PYTHONPATH. 
 Import it with 'import libmy_cpp_module'. 
+
+IMPORTANT NOTES:
+- When you pass a pyarr by value from anywhere to anywhere else, the array data is NOT COPIED. 
+Normally the Python reference count is just managed in a sensible way by the constructors and
+destructor. If you would like a copy, you can say mypyarr.copy(). For this reason, it is 
+never recommended that you pass pyarrs by reference or by pointer, because there is no benefit
+to doing so, and you risk messing up the refcounts. 
+
+- You cannot create a view into a numpy array (e.g. with myarr[::-1, ...]) and pass it into a 
+C++ function expecting a pyarr. If you have a view into an array and you would like to pass it, 
+you can create a copy of it with .copy() in Python and then pass the copy in. 
+
