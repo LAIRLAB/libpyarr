@@ -1,0 +1,55 @@
+See INSTALL for installation instructions. 
+
+libpyarr makes it embarrassingly easy to:
+- write some Python code that uses numpy arrays
+- discover that part of it is slow
+- rewrite that part in C++
+- call the new C++ function, passing in numpy arrays and/or returning them without excessive copying. 
+
+It is sufficiently convenient to do this that users of this library tend to completely cease
+writing top-level executables in C++.
+
+So, for example, if you would like to pass a numpy array of int32's into a C++ function, you can have
+a C++ module: 
+
+#include <boost_common.h>
+
+void foo(pyarr<int> myarr) 
+{
+    for (int i=0; i<myarr.dims[0]; i++) {
+        for (int j=0; j<myarr.dims[2]; j++) {
+            myarr[ind(i,j)] = 0.0;
+        }
+    }
+}
+
+To create a new uninitialized numpy array in C++ and return it: 
+
+pyarr<unsigned char> bar() 
+{
+    long int dims[] = {10, 20, 30};
+    pyarr<unsigned char> ret(3, dims);
+    return ret;
+}
+
+To expose these functions to Python:
+
+BOOST_PYTHON_MODULE(libmy_cpp_module)
+{
+    def("foo", foo);
+    def("bar", bar);
+}
+
+Then in your CMakeLists.txt:
+
+include(common.cmake)
+include(boost_common.cmake)
+
+add_library(my_cpp_module my_cpp_module.cc)
+set_target_properties(my_cpp_module PROPERTIES SUFFIX ".so") 
+# need the above or else it will be called a .dylib on OS X and python won't import it
+target_link_libraries(my_cpp_module boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+
+Then your new library will be in lib/, and you can either add an __init__.py file to your lib/ 
+directory, copy said library somewhere else, or add your lib/ directory to your $PYTHONPATH. 
+Import it with 'import libmy_cpp_module'. 
