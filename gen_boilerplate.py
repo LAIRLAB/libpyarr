@@ -16,8 +16,8 @@ def write_if_changed(s, f):
 
 
 def gen_everything():
-    hdr_file = os.environ['LIBNREC_ROOT'] + '/autogen.h'
-    conv_file = os.environ['LIBNREC_ROOT'] + '/autogen_converters.cpp'
+    hdr_file = os.environ['LIBPYARR_ROOT'] + '/autogen.h'
+    conv_file = os.environ['LIBPYARR_ROOT'] + '/autogen_converters.cpp'
 
     print hdr_file, conv_file
 

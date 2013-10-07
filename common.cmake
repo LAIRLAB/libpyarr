@@ -21,9 +21,9 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.so;.a")
 set(BUILD_SHARED_LIBS ON)
 set(CMAKE_COMPILER_IS_GNUCXX ON)
 
-set(LIBNREC $ENV{LIBNREC_ROOT})
-include_directories(${LIBNREC}/
-  ${LIBNREC}/include)
+set(LIBPYARR $ENV{LIBPYARR_ROOT})
+include_directories(${LIBPYARR}/
+  ${LIBPYARR}/include)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3 -g -DUNIX")
 
@@ -32,5 +32,5 @@ if ($ENV{CMAKE_USE_FLOATS} STREQUAL "YES")
 endif()
 
 
-include(${LIBNREC}/boost_util.cmake)
-link_directories(${LIBNREC}/lib)
+include(${LIBPYARR}/boost_util.cmake)
+link_directories(${LIBPYARR}/lib)
