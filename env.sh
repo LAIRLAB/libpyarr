@@ -11,6 +11,6 @@ pypathadd() {
     fi
 }
 
-export LIBNREC_ROOT=$CURRENT_DIR
-pypathadd $LIBNREC_ROOT/lib
-pypathadd $LIBNREC_ROOT/..
+export LIBPYARR_ROOT=$CURRENT_DIR
+pypathadd $LIBPYARR_ROOT/lib
+pypathadd $LIBPYARR_ROOT/..
