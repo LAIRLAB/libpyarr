@@ -5,7 +5,7 @@ include(boost_util.cmake)
 
 add_library(boost_common
             boost_common.cc
-            ob/OB_CPP_release/mymex.cc 
+            mymex.cc 
             misc.cpp)
 
 set_target_properties(boost_common PROPERTIES SUFFIX ".so")

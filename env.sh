@@ -14,3 +14,4 @@ pypathadd() {
 export LIBPYARR_ROOT=$CURRENT_DIR
 pypathadd $LIBPYARR_ROOT/lib
 pypathadd $LIBPYARR_ROOT/..
+pathadd $LIBPYARR_ROOT
