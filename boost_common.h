@@ -27,5 +27,6 @@
 #include <boilerplate.h>
 #include <pyarr.h>
 
+template<typename T> const T copy_object(const T& v) { return v; }
 void boost_common();
 

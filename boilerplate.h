@@ -28,5 +28,12 @@ PyObject *vecvec_to_numpy(const vector<const vector<real> *> v);
 
 vector<real> numpy_to_vec(PyObject *o);
 PyObject* vec_to_numpy(vector<real> v);
+template<class T>
+list vector2pylist(const std::vector<T>& v) {
+    object get_iter = boost::python::iterator<std::vector<T> >();
+    object iter = get_iter(v);
+    list l(iter);
+    return l;
+}
 
 #endif /* _BOILERPLATE_H */

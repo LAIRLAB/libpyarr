@@ -14,6 +14,21 @@ vec_reg = {}
 
 print "_gensym_ctr is",_gensym_ctr
 
+class Struct:
+    def __init__(self, *args, **kwargs):
+        self.__kwargs = kwargs
+        for k in kwargs.keys():
+            setattr(self, k, kwargs[k])
+    def __eq__(self, other):
+        for x in self.__kwargs.keys():
+            try:
+                if getattr(self, x) != getattr(other, x):
+                    return False
+            except AttributeError:
+                return False
+        return True
+
+
 def gensym():
     global _gensym_ctr
     ret = '_G' + `_gensym_ctr`
