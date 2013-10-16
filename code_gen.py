@@ -222,8 +222,13 @@ class inst_td(object):
         else:
             self.n_vecs=the_tpl_decl.n_vecs
 
-    def gen(self):
-        ret = self.decl.gen_clsdecl()
+    def gen_clsdecl(self):
+        return self.decl.gen_clsdecl()
+
+    def gen(self, do_clsdecl=True):
+        ret = ''
+        if do_clsdecl:
+            ret += self.decl.gen_clsdecl()
         ret += self.decl.gen(self.args, n_vecs=self.n_vecs)
         return ret
 

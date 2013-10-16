@@ -3,7 +3,7 @@
 
 #include <boilerplate.cpp>
 
-#include <autogen_converters.cpp>
+#include <autogen.h>
 #include <to_python_converters.cc>
 #include <set>
 

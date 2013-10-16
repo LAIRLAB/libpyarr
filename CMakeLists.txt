@@ -6,13 +6,8 @@ include(boost_util.cmake)
 add_library(boost_common
             boost_common.cc
             mymex.cc 
+            autogen_converters.cpp
             misc.cpp)
 
 set_target_properties(boost_common PROPERTIES SUFFIX ".so")
 target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
-
-
-
-  
-
-  
