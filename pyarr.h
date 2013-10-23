@@ -175,10 +175,11 @@ class pyarr {
 #pragma omp critical (_pyarr) 
         {
         //printf("pyarr copy constructor\n");
-        ao = o.ao;
-        dims = o.dims;
-        data = o.data;
-            Py_INCREF(ao);
+            ao = o.ao;
+            dims = o.dims;
+            data = o.data;
+            if (ao != NULL) 
+                Py_INCREF(ao);
         }
     }
     pyarr& operator=(const pyarr<T>& o) {
