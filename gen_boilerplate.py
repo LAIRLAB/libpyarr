@@ -51,7 +51,8 @@ def gen_everything():
                inst_td(pair_tpl, ['bool', 'bool']),
                inst_td(pair_tpl, ['pair<size_t, size_t>', 'pair<bool, bool>'], n_vecs = 1)]
 
-    vecs = [vec_decl('size_t'),
+    vecs = [vec_decl('int'), 
+            vec_decl('size_t'),
             vec_decl('size_t_vec'),
             vec_decl('double'), 
             vec_decl('double_vec'), 
