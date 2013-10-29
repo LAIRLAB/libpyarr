@@ -120,14 +120,17 @@ class pyarr {
     pyarr(PyArrayObject *_ao)
         : ao(_ao) {
         //printf("pyarr from-python constructor\n");
-#pragma omp critical (_pyarr) 
-        {
-            Py_INCREF(ao);
-        }
-        data = (T*)ao->data;
         dims.clear();
-        for (int i=0; i<ao->nd; i++) {
-            dims.push_back(ao->dimensions[i]);
+        if (ao != NULL) {
+#pragma omp critical (_pyarr) 
+            {
+                Py_INCREF(ao);
+            }
+            data = (T*)ao->data;
+
+            for (int i=0; i<ao->nd; i++) {
+                dims.push_back(ao->dimensions[i]);
+            }
         }
     }
 
@@ -186,14 +189,15 @@ class pyarr {
 #pragma omp critical (_pyarr)
         {
             //printf("pyarr operator=\n");
+            /* kill our old one, if we had one */
             if (ao != NULL) 
-                Py_DECREF(ao);
+              Py_DECREF(ao);
             
             ao = o.ao;
             dims = o.dims;
             data = o.data;
-            
-            Py_INCREF(ao);
+            if (ao != NULL)
+                Py_INCREF(ao);
         }
         return *this;
     }
