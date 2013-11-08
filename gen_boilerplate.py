@@ -25,8 +25,7 @@ def gen_everything():
                         ['T1', 'T2'],
                         [],
                         [['first', 'T1'],
-                         ['second', 'T2']],
-                        init_args=['T1', 'T2'])                        
+                         ['second', 'T2']])
 
     classes = [cls_decl('kittilabel',
                         [],
@@ -35,15 +34,13 @@ def gen_everything():
                          ['occlusion', 'int'],
                          'alpha',
                          'confidence',
-                         'x1', 'y1', 'x2', 'y2'],
-                        init_args=[]),
+                         'x1', 'y1', 'x2', 'y2']),
                cls_decl('levelij_arbin',
                         [],
                         [['level', 'int'],
                          ['i', 'int'],
                          ['j', 'int'],
-                         ['arbin', 'int']],
-                        init_args=[]),
+                         ['arbin', 'int']]),
                inst_td(pair_tpl, ['size_t', 'size_t'], n_vecs=2), 
                inst_td(pair_tpl, ['float', 'float'], n_vecs = 1),
                inst_td(pair_tpl, ['unsigned int', 'unsigned int']),
@@ -114,4 +111,4 @@ void register_autogen_converters() {
 
 
 if __name__ == '__main__':
-    gen_everything()
+    pdbwrap(gen_everything)()

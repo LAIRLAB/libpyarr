@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import pdb
+import pdb, sys, traceback, os
 
 global cls_reg
 cls_reg = {}
@@ -28,6 +28,22 @@ class Struct:
                 return False
         return True
 
+def pdbwrap(f):
+    '''A utility for dropping out to a debugger on exceptions.'''
+    def fdebug(*a, **kw):
+        try:
+            return f(*a, **kw)
+        except Exception:
+            print 
+            type, value, tb = sys.exc_info()
+            traceback.print_exc(file=sys.stderr)
+            os.system('stty sane')
+            
+            if sys.stdin.isatty():
+                pdb.post_mortem(tb)
+            else:
+                sys.exit(1)
+    return fdebug
 
 def gensym():
     global _gensym_ctr
@@ -41,7 +57,6 @@ class tpl_decl(object):
                  tpl_params,
                  method_names, 
                  field_names, 
-                 init_args=[],
                  n_vecs=1,
                  do_clsdecl=False):
 
@@ -49,40 +64,63 @@ class tpl_decl(object):
         self.cpp_name = (cpp_name if tpl_params is None else None)
         self.tpl_params = tpl_params
         self.method_names = method_names
+        self.full_field_names = field_names
         self.field_names = [(f if not isinstance(f, list) else f[0]) for f in field_names]
-        
-        def field_type(f):
-            if not isinstance(f, list):
-                return 'real'
-            elif isinstance(f[1], str):
-                return f[1]
-            elif isinstance(f[1], int):
-                return tpl_params[f[1]]
-            else:
-                print "whoa dude, got",f[1],"for a type, dunno man"
-                return None
 
-        self.field_types = [field_type(f) for f in field_names]
-        self.init_args = init_args
+        self.field_types = [self.field_type(f) for f in field_names]
+        self.init_args = self.field_types
 
         self.n_vecs = n_vecs
         
         tpl_decl_reg[self.pre_cpp_name] = self
 
         self.already_decled = not do_clsdecl
+
+
+    def field_type(self, f):
+        if not isinstance(f, list):
+            return 'real'
+        elif isinstance(f[1], str):
+            return f[1]
+        elif isinstance(f[1], int):
+            return tpl_params[f[1]]
+        else:
+            print "whoa dude, got",f[1],"for a type, dunno man"
+            return None
+    def field_name(self, f):
+        if not isinstance(f, list):
+            return f
+        else:
+            return f[0]
                                                          
     def gen_clsdecl(self):
+        # goddamn python sum sums with int dammit
+        def my_sum(l):
+            return reduce(lambda x,y: x+y, l)
+
         if self.already_decled:
             return ''
 
         if self.tpl_params is not None and len(self.tpl_params) > 0:
-            ret = 'template<{}>\n'.format(reduce(lambda x,y: x+y, 
-                                                 ['typename {}, '.format(t)
+            ret = 'template<{}>\n'.format(my_sum(['typename {}, '.format(t)
                                                   for t in self.tpl_params]))
         else:
             ret = ''
         ret += 'class ' + self.pre_cpp_name + ' {\n'
         ret += 'public:\n'
+
+        arg_names = [gensym() for f in self.full_field_names]
+        ret += '%s('%self.pre_cpp_name
+        ret += my_sum([' ' + self.field_type(f) + ' ' + a + ',' 
+                       for (f, a) in zip(self.full_field_names, arg_names)])
+        # delete trailing comma
+        ret = ret[:-1] + ') : \n'
+        ret += my_sum([' ' + self.field_name(f) + '(' + a + '), '
+                    for (f, a) in zip(self.full_field_names, arg_names)])
+        # delete the trailing comma and space
+        ret = ret[:-2]
+        
+        ret += ' {}\n'
         o = gensym()
         ret += 'bool operator==(const %s &%s) {'%(self.pre_cpp_name, o)
         ret += 'return ( '
@@ -98,17 +136,6 @@ class tpl_decl(object):
             ret += t + ' ' + f + ';\n'
 
         ret += self.pre_cpp_name + '() {}\n'
-
-        if self.init_args is not None and len(self.init_args) > 0:
-            ret += self.pre_cpp_name + '('
-            for (i,a) in enumerate(self.init_args):
-                if isinstance(a, int):
-                    t = self.tpl_params[a]
-                else:
-                    t = a
-                ret += t + ' _' + i + ', '
-
-            ret += ');\n'
 
         ret += '};\n'
 
@@ -136,7 +163,7 @@ class tpl_decl(object):
 
         cls_reg[python_name] = Struct(cpp_name=cpp_name, 
                                       python_name=python_name)
-
+        
         vecs = []
         if n_vecs is None:
             n_vecs = self.n_vecs
@@ -156,20 +183,18 @@ class tpl_decl(object):
         return ret
 
     def gen_reg(self, tpl_args):
-        cpp_name, python_name, init_args = self.inst_tpl_args(tpl_args)
+        cpp_name, python_name, the_init_args = self.inst_tpl_args(tpl_args)
 
         ret = 'class_<'
         ret += cpp_name
-        ret += ' >("{}",'.format(python_name)
+        ret += ' >("%s")\n'%python_name
 
-        if self.init_args is None:
-            ret += 'no_init'
-        else:
-            ret += 'init<'
-            if len(init_args) > 0:
-                for i in init_args[:-1]:
-                    ret += i + ', '
-                ret += init_args[-1]
+        ret += '.def(init<>())\n'
+        if len(the_init_args) > 0:
+            ret += '.def(init<'
+            for i in the_init_args[:-1]:
+                ret += i + ', '
+            ret += the_init_args[-1]
             ret += ' >()'
         ret += ')\n'
 
@@ -246,7 +271,6 @@ class cls_decl(inst_td):
                                                [],
                                                method_names, 
                                                field_names, 
-                                               init_args,
                                                n_vecs,
                                                do_clsdecl=True),
                                       [])

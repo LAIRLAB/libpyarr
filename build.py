@@ -14,12 +14,18 @@ def main():
     else: 
         os.environ['CMAKE_USE_FLOATS'] = "NO"
 
+    orig_dir = os.getcwd()
 
+    
+    os.chdir(os.environ['LIBPYARR_ROOT'])
+    print "curdir",os.getcwd()
     if not args.clean:
         gen.gen_everything()
         os.system('cmake .; make -j%d'%args.nbr_jobs)
     else:
         os.system('rm -rf CMakeFiles/ CMakeCache.txt Makefile bin lib')
 
+    os.system('cd %s'%orig_dir)
+
 if __name__=='__main__':
-    main()
+    gen.pdbwrap(main)()
