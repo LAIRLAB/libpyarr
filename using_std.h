@@ -6,7 +6,9 @@ using std::endl;
 using std::cout;
 using std::string;
 using std::stringstream;
-using namespace std::tr1;
+
+//mavericks..
+//using namespace std::tr1;
 using std::ifstream;
 using std::pair;
 using std::make_pair;

@@ -12,7 +12,7 @@ The root paths it starts looking for EPD in are contained in the 'check_dirs' gl
 
 import os, sys, getpass
 
-check_dirs = ['/home/%s' % getpass.getuser(), '/usr/share/', '/home/ecuzzill', '/opt/local', '/opt']
+check_dirs = ['/opt/local/lib', '/home/%s' % getpass.getuser(), '/usr/share/', '/home/ecuzzill', '/opt/local', '/opt']
 
 def main():
     if len(sys.argv) == 2:
