@@ -26,6 +26,7 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
                               bool yell);
 
 PyObject *vecvec_to_numpy(const vector<const vector<real> *> v);
+PyObject *vecvec_real_to_numpy(vector<vector<real> > v);
 
 
 vector<real> numpy_to_vec(PyObject *o);
