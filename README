@@ -39,6 +39,8 @@ To expose these functions to Python:
 ==============================
 BOOST_PYTHON_MODULE(libmy_cpp_module)
 {
+    import_array(); /* THESE ARE IMPORTANT */
+    boost_common(); /* YOU WILL INEXPLICABLY SEGFAULT WITHOUT THESE */
     def("foo", foo);
     def("bar", bar);
 }
