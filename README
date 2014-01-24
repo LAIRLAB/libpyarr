@@ -67,7 +67,7 @@ IMPORTANT NOTES:
 - When you pass a pyarr by value from anywhere to anywhere else, the array data is NOT COPIED. 
 Normally the Python reference count is just managed in a sensible way by the constructors and
 destructor. If you would like a copy, you can say mypyarr.copy(). For this reason, it is 
-never recommended that you pass pyarrs by reference or by pointer, because there is no benefit
+recommended that you never pass pyarrs by reference or by pointer, because there is no benefit
 to doing so, and you risk messing up the refcounts. 
 
 - You cannot create a view into a numpy array (e.g. with myarr[::-1, ...]) and pass it into a 
