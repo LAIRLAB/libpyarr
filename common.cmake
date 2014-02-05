@@ -25,7 +25,11 @@ set(LIBPYARR $ENV{LIBPYARR_ROOT})
 include_directories(${LIBPYARR}/
   ${LIBPYARR}/include)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3 -g -DUNIX")
+if (NOT APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3 -g -DUNIX")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g -DUNIX")
+endif()
 
 if ($ENV{CMAKE_USE_FLOATS} STREQUAL "YES")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FLOATS")

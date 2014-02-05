@@ -265,6 +265,21 @@ PyObject *vecvec_to_numpy(const vector<const vector<real> *> v)
     return (PyObject*)retval;
 }
 
+PyObject *vecvec_real_to_numpy(vector<vector<real> > v) 
+{
+    npy_intp dims[] = {v.size(), v[0].size()};
+
+    PyArrayObject *retval;
+    retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
+    for (int i=0; i<dims[0];i++) {
+	for (int j=0; j<dims[1]; j++) {
+	    ((real*)retval->data)[i*dims[1] + j] = v[i][j];
+	}
+    }
+
+    return (PyObject*)retval;
+}
+
 
 PyObject* mxarray2d_to_numpy(mxArray* arr)
 {

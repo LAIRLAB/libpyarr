@@ -6,7 +6,9 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <tr1/memory>
+
+//for mavericks build
+//#include <tr1/memory>
 
 #include "misc.h"
 
@@ -15,7 +17,7 @@
 using std::string;
 using std::vector;
 using namespace boost::python;
-using std::tr1::shared_ptr;
+//using std::shared_ptr;
 
 bool numpy_satisfy_properties(PyArrayObject *ao, 
                               int nd, 
@@ -24,15 +26,20 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
                               bool yell);
 
 PyObject *vecvec_to_numpy(const vector<const vector<real> *> v);
+PyObject *vecvec_real_to_numpy(vector<vector<real> > v);
 
 
 vector<real> numpy_to_vec(PyObject *o);
 PyObject* vec_to_numpy(vector<real> v);
 template<class T>
 list vector2pylist(const std::vector<T>& v) {
-    object get_iter = boost::python::iterator<std::vector<T> >();
-    object iter = get_iter(v);
-    list l(iter);
+    list l;
+    for(int i = 0; i < v.size(); i++ ) {
+	l.append(object(v.at(i)));
+    }
+    //object get_iter = boost::python::iterator<std::vector<T> >();
+    //object iter = get_iter(v);
+    //list l(iter);
     return l;
 }
 
