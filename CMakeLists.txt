@@ -9,5 +9,8 @@ add_library(boost_common
             autogen_converters.cpp
             misc.cpp)
 
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS "-O0")
+
 set_target_properties(boost_common PROPERTIES SUFFIX ".so")
 target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})

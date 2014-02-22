@@ -13,6 +13,7 @@
 #include "misc.h"
 
 #include <numpy/arrayobject.h>
+#include <pyarr.h>
 
 using std::string;
 using std::vector;
@@ -26,6 +27,7 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
                               bool yell);
 
 PyObject *vecvec_to_numpy(const vector<const vector<real> *> v);
+PyObject *vecvecvec_to_numpy(vector<vector<vector<real> > > v);
 PyObject *vecvec_real_to_numpy(vector<vector<real> > v);
 
 

@@ -21,7 +21,6 @@
 #include "voc_felz_features.h"
 */
 #include <mymex.h>
-#include <pyarr.h>
 
 bool numpy_satisfy_properties(PyArrayObject *ao, 
                               int nd, 
@@ -249,6 +248,23 @@ struct vec_to_numpy_str {
     }
 };
 
+PyObject *vecvecvec_to_numpy(vector<vector<vector<real> > > v) 
+{
+    npy_intp dims[] = {v.size(), v[0].size(), v[0][0].size()};
+
+    PyArrayObject *retval;
+    retval = (PyArrayObject*)PyArray_SimpleNew(3, dims, npy_real_type());
+    for (int i=0; i<dims[0];i++) {
+	for (int j=0; j<dims[1]; j++) {
+	    for (int k=0; k<dims[2]; k++) {
+		((real*)retval->data)[i*dims[0]*dims[1] + j*dims[1] + k] = v[i][j][k];
+	    }
+	}
+    }
+
+    return (PyObject*)retval;
+}
+
 
 PyObject *vecvec_to_numpy(const vector<const vector<real> *> v) 
 {
@@ -268,6 +284,8 @@ PyObject *vecvec_to_numpy(const vector<const vector<real> *> v)
 PyObject *vecvec_real_to_numpy(vector<vector<real> > v) 
 {
     npy_intp dims[] = {v.size(), v[0].size()};
+    printf("dims[0]: %d, dims[1]: %d\n", dims[0], dims[1]);
+    fflush(stdout);
 
     PyArrayObject *retval;
     retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());

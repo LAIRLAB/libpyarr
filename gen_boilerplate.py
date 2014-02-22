@@ -54,6 +54,7 @@ def gen_everything():
             vec_decl('double'), 
             vec_decl('double_vec'), 
             vec_decl('double_vec_vec'), 
+            vec_decl('double_vec_vec_vec'),
             vec_decl('float'), 
             vec_decl('float_vec'), 
             vec_decl('float_vec_vec'), 
