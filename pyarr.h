@@ -271,9 +271,7 @@ class pyarr {
     bool operator==(const pyarr<T>& o) {
         return (ao==o.ao);
     }
-
 };
-
 
 #endif // _IMARR_H
 

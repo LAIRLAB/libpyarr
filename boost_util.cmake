@@ -15,7 +15,10 @@ endif()
 message("Boost includes: ${Boost_INCLUDE_DIRS}")
 message("Boost lib dirs: ${Boost_LIBRARY_DIRS}")
 message("Boost libs: ${Boost_LIBRARIES}")
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/)
+
+#temp hack
+#set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /opt/local/lib)
 find_package(PythonLibs 2.7 REQUIRED)
 message("Python libs: " ${PYTHON_LIBRARIES})
 message("Python include dir: " ${PYTHON_INCLUDE_DIRS})
