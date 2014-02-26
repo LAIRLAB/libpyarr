@@ -1,6 +1,8 @@
-import numpy
+import numpy, warnings
 
-import libboost_common
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    import libboost_common
 
 def v2l(v):
     l = []
