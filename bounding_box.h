@@ -6,6 +6,8 @@
  */
 class BoundingBox {
  public:
+    BoundingBox() {x1_ = -1; x2_ = -1; y1_ = -1; y2_ = -1; update_metadata();}
+
     BoundingBox(int x1, int y1, int x2, int y2) 	
      {
 	x1_ = x1;
