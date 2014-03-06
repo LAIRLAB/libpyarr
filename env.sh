@@ -1,4 +1,4 @@
-CURRENT_DIR="$( dirname "${BASH_SOURCE[0]}" )"
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 pathadd() {
     if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
