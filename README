@@ -63,7 +63,14 @@ to see what directories to include and link with and what libraries to link to.
 If you do use cmake, your new library will be in lib/, and you can either add an __init__.py 
 file to your lib/ directory, copy said library somewhere else, or add your lib/ directory to 
 your $PYTHONPATH. 
-Import it with 'import libmy_cpp_module'. 
+Import it with 'import libmy_cpp_module'. You will see a bunch of harmless warnings; to 
+suppress these, do
+==============================
+import warnings
+with warnings.catch_warnings():
+     warnings.simplefilter("ignore")
+     import libmy_cpp_module
+==============================
 
 IMPORTANT NOTES:
 - When you pass a pyarr by value from anywhere to anywhere else, the array data is NOT COPIED. 
@@ -76,3 +83,4 @@ to doing so, and you risk messing up the refcounts.
 C++ function expecting a pyarr. If you have a view into an array and you would like to pass it, 
 you can create a copy of it with .copy() in Python and then pass the copy in. 
 
+- When you import the resulting .so that you built, 
