@@ -48,7 +48,7 @@ BOOST_PYTHON_MODULE(libmy_cpp_module)
 Then in your CMakeLists.txt:
 ==============================
 include(common.cmake)
-include(boost_common.cmake)
+include(boost_util.cmake)
 
 add_library(my_cpp_module my_cpp_module.cc)
 set_target_properties(my_cpp_module PROPERTIES SUFFIX ".so") 
