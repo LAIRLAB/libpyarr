@@ -140,7 +140,7 @@ class pyarr {
             //printf("pyarr main constructor\n");
             //printf("making pyarr of nd %d\n", nd);
             if (nd > 4) {
-                printf("OH FUCK ND KINDA BIG %d\n", nd);
+                printf("OH DEAR ND KINDA BIG %d\n", nd);
             }
             dims.clear();
             for (int i=0; i<nd; i++) {
@@ -155,7 +155,7 @@ class pyarr {
                                                    _dims, 
                                                    lookup_npy_type<T>(dummy));
             if (ao == NULL) {
-                printf("OH FUCK AO IS NULL ON ARGS %lu, ", dims.size());
+                printf("OH NO AO IS NULL ON ARGS %lu, ", dims.size());
                 for (int i=0; i<dims.size(); i++) {
                     printf("%ld, ", _dims[i]);
                 }
@@ -247,24 +247,12 @@ class pyarr {
         return final_idx;
     }
     T getitem(ind i) const {
-        if (ao == NULL) {
-            printf("OH FUCK\n");
-        }
         return ((T*)ao->data)[actual_idx(i)];
     }
     void setitem(ind i, T v) {
-        if (ao == NULL) {
-            printf("OH FUCK\n");
-        }
-
         ((T*)ao->data)[actual_idx(i)] = v;
     }
     T& operator[](ind i) {
-        if (ao == NULL) {
-            printf("OH FUCK\n");
-	    fflush(stdout);
-        }
-
         return ((T*)ao->data)[actual_idx(i)];
     }
     

@@ -83,4 +83,54 @@ to doing so, and you risk messing up the refcounts.
 C++ function expecting a pyarr. If you have a view into an array and you would like to pass it, 
 you can create a copy of it with .copy() in Python and then pass the copy in. 
 
-- When you import the resulting .so that you built, 
+- You have to have the import_array(); call somewhere in EACH separate compilation unit (usually
+each .cpp or .cc file). If you don't, you will inexplicably segfault. Common practice is to have 
+each .cpp file be its own Python module, but that part isn't required. (This is terrible, and
+a long time was spent trying to get around it, so if you fix it, please tell me how and/or let 
+me pull from you.)
+
+==============================
+==============================
+At this point, you may be wondering, as others have, why not use something like the below? 
+
+https://github.com/personalrobotics/Boost.NumPy
+
+The answer is that after some investigation, it is terribly inconvenient to use,
+and is in fact intended that way.
+
+From the Boost.NumPy README: "This is also not intended to be a
+high-level C++ array library; it would be more accurate to consider it
+a C++ NumPy API, with the intent of making the NumPy C-API available
+in a form that is safer and more convenient for C++ users (and
+particularly those using Boost.Python, of course)."
+
+And, if you look at the second example in
+https://github.com/personalrobotics/Boost.NumPy/blob/master/libs/numpy/example/wrap.cpp 
+you see that it is basically identical in functionality to the first
+of the two libpyarr examples above (not including the CMakeLists.txt), 
+but takes 34 lines to do what libpyarr does in 14. The difference is 
+basically entirely crazy boilerplate, which you have to pay again and 
+again every time you pass a numpy array to a C++ function.
+
+The main point of libpyarr is to eliminate that boilerplate (in
+significant part by automatically generating it and shoving it into
+the converter, where you can't see it and don't have to ever write it
+yourself), so that the overhead of taking a tiny bit of Python code
+and dropping it into C++ is as low as possible. This makes it easier
+to think about code even if you write things the same way, but also it
+means that you actually end up doing things very differently.
+
+If you know you're going to have to do a ton of boilerplate in order
+to speed things up, you are likely to either a) accept them being
+slow, or more likely b) write way too much stuff in C++ preemptively,
+so as to minimize the overhead, making your code bigger, harder to
+change, and harder to think about. Conversely, if you know it's easy,
+you can blithely write your code however you like in Python, and
+convert small bits to C++ on the fly.
+
+I should say also that at least in that example, Boost.NumPy appears
+to be more or less equivalent to (although slightly more obfuscated
+than) passing a PyObject*, which Boost.Python will already allow you
+to do, and then using the raw numpy C API, which is what I used to do
+before libpyarr. You can certainly write code that way, but it's not
+happy or recommended.

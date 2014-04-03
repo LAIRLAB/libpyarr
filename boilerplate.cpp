@@ -32,20 +32,30 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
         if (yell) {
             printf("OH NO! base was %p instead of NULL!\n", 
                    ao->base);
+            fflush(stdout);
         }
         return false;
     }
 
     if (!(ao->flags | NPY_C_CONTIGUOUS)) {
-        if (yell) printf("ON NO! NPY_C_CONTIGUOUS FALSE!\n");
+        if (yell) {
+            printf("ON NO! NPY_C_CONTIGUOUS FALSE!\n");
+            fflush(stdout);
+        }
         return false;
     }
     if (!(ao->flags | NPY_OWNDATA)) {
-        if (yell) printf("ON NO! NPY_OWNDATA FALSE!\n");
+        if (yell) {
+            printf("ON NO! NPY_OWNDATA FALSE!\n");
+            fflush(stdout);
+        }
         return false;
     }
     if (!(ao->flags | NPY_ALIGNED)) {
-        if (yell) printf("ON NO! NPY_ALIGNED FALSE!\n");
+        if (yell) {
+            printf("ON NO! NPY_ALIGNED FALSE!\n");
+            fflush(stdout);
+        }
         return false;
     }
 
@@ -54,6 +64,7 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
             if (yell) {
                 printf("numpy_satisfy_properties OH NO! nd = %d and desired nd = %d!\n",
                        ao->nd, nd);
+                fflush(stdout);
             }
             return false;
         }
@@ -64,6 +75,7 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
                     if (yell) {
                         printf("OH NO! dims[%d] = %ld and desired %d!\n", 
                                i, ao->dimensions[i], dims[i]);
+                        fflush(stdout);
                     }
                     return false;
                 }
@@ -75,6 +87,7 @@ bool numpy_satisfy_properties(PyArrayObject *ao,
         if (yell) {
             printf("OH NO! type_num is %d and desired %d!\n", 
                    ao->descr->type_num, type_num);
+            fflush(stdout);
         }
         return false;
     }
