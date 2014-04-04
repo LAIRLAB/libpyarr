@@ -224,21 +224,34 @@ class pyarr {
         return the_copy;
     }
 
-    long int actual_idx(ind idx) {
+    long int actual_idx(const ind& idx) {
+        if (idx.nd == 1) {
+            return idx.inds[0];
+        }
+        if (idx.nd == 2) {
+            return idx.inds[0]*dims[1] + idx.inds[1];
+        }
+        if (idx.nd == 3) {
+            return idx.inds[0]*dims[1]*dims[2] + idx.inds[1]*dims[2] + idx.inds[2];
+        }
+
         long int final_idx = 0;
+
         if (idx.nd > dims.size()) {
             printf("indexing into low-dim (%lu) array with high-dim index (%d) not supported\n",
                    dims.size(), idx.nd);
             return 0;
         }
+
+
         for (int d=0; d<idx.nd; d++) {
             long int this_idx = idx.inds[d];
-            if (this_idx >= dims[d]) {
+            /*if (this_idx >= dims[d]) {
                 ostringstream ss("pyarr::actual_idx out of bounds ", std::ios_base::ate);
                 ss << "dim " << d << " max: " << dims[d] << ", requested: " << this_idx;
                 cerr << ss.str();
                 throw std::runtime_error(ss.str());
-            }
+                }*/
             for (int e=d+1; e<idx.nd; e++) {
                 this_idx *= dims[e];
             }
@@ -252,7 +265,7 @@ class pyarr {
     void setitem(ind i, T v) {
         ((T*)ao->data)[actual_idx(i)] = v;
     }
-    T& operator[](ind i) {
+    T& operator[](const ind& i) {
         return ((T*)ao->data)[actual_idx(i)];
     }
     
