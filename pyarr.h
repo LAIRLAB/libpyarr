@@ -225,6 +225,7 @@ class pyarr {
     }
 
     long int actual_idx(const ind& idx) {
+#ifndef DEBUG
         if (idx.nd == 1) {
             return idx.inds[0];
         }
@@ -234,7 +235,13 @@ class pyarr {
         if (idx.nd == 3) {
             return idx.inds[0]*dims[1]*dims[2] + idx.inds[1]*dims[2] + idx.inds[2];
         }
-
+        if (idx.nd == 4) {
+            return (idx.inds[0]*dims[1]*dims[2]*dims[3] + 
+                    idx.inds[1]*dims[2]*dims[3] + 
+                    idx.inds[2]*dims[3] + 
+                    idx.inds[3]);
+        }
+#else
         long int final_idx = 0;
 
         if (idx.nd > dims.size()) {
@@ -258,15 +265,16 @@ class pyarr {
             final_idx += this_idx; 
         }
         return final_idx;
+#endif
     }
     T getitem(ind i) const {
-        return ((T*)ao->data)[actual_idx(i)];
+        return data[actual_idx(i)];
     }
     void setitem(ind i, T v) {
-        ((T*)ao->data)[actual_idx(i)] = v;
+        data[actual_idx(i)] = v;
     }
     T& operator[](const ind& i) {
-        return ((T*)ao->data)[actual_idx(i)];
+        return data[actual_idx(i)];
     }
 
     bool operator==(const pyarr<T>& o) const {
