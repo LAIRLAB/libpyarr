@@ -277,7 +277,7 @@ class pyarr {
         return data[actual_idx(i)];
     }
     
-    bool operator==(const pyarr<T>& o) {
+    bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
     }
 };
