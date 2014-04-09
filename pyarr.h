@@ -276,7 +276,7 @@ class pyarr {
     T& operator[](const ind& i) {
         return data[actual_idx(i)];
     }
-
+    
     bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
     }
