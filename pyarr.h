@@ -140,7 +140,7 @@ class pyarr {
             //printf("pyarr main constructor\n");
             //printf("making pyarr of nd %d\n", nd);
             if (nd > 4) {
-                printf("OH FUCK ND KINDA BIG %d\n", nd);
+                printf("OH DEAR ND KINDA BIG %d\n", nd);
             }
             dims.clear();
             for (int i=0; i<nd; i++) {
@@ -155,7 +155,7 @@ class pyarr {
                                                    _dims, 
                                                    lookup_npy_type<T>(dummy));
             if (ao == NULL) {
-                printf("OH FUCK AO IS NULL ON ARGS %lu, ", dims.size());
+                printf("OH NO AO IS NULL ON ARGS %lu, ", dims.size());
                 for (int i=0; i<dims.size(); i++) {
                     printf("%ld, ", _dims[i]);
                 }
@@ -224,51 +224,60 @@ class pyarr {
         return the_copy;
     }
 
-    long int actual_idx(ind idx) {
+    long int actual_idx(const ind& idx) {
+#ifndef DEBUG
+        if (idx.nd == 1) {
+            return idx.inds[0];
+        }
+        if (idx.nd == 2) {
+            return idx.inds[0]*dims[1] + idx.inds[1];
+        }
+        if (idx.nd == 3) {
+            return idx.inds[0]*dims[1]*dims[2] + idx.inds[1]*dims[2] + idx.inds[2];
+        }
+        if (idx.nd == 4) {
+            return (idx.inds[0]*dims[1]*dims[2]*dims[3] + 
+                    idx.inds[1]*dims[2]*dims[3] + 
+                    idx.inds[2]*dims[3] + 
+                    idx.inds[3]);
+        }
+#else
         long int final_idx = 0;
+
         if (idx.nd > dims.size()) {
             printf("indexing into low-dim (%lu) array with high-dim index (%d) not supported\n",
                    dims.size(), idx.nd);
             return 0;
         }
+
+
         for (int d=0; d<idx.nd; d++) {
             long int this_idx = idx.inds[d];
-            if (this_idx >= dims[d]) {
+            /*if (this_idx >= dims[d]) {
                 ostringstream ss("pyarr::actual_idx out of bounds ", std::ios_base::ate);
                 ss << "dim " << d << " max: " << dims[d] << ", requested: " << this_idx;
                 cerr << ss.str();
                 throw std::runtime_error(ss.str());
-            }
+                }*/
             for (int e=d+1; e<idx.nd; e++) {
                 this_idx *= dims[e];
             }
             final_idx += this_idx; 
         }
         return final_idx;
+#endif
     }
     T getitem(ind i) const {
-        if (ao == NULL) {
-            printf("OH FUCK\n");
-        }
-        return ((T*)ao->data)[actual_idx(i)];
+        return data[actual_idx(i)];
     }
     void setitem(ind i, T v) {
-        if (ao == NULL) {
-            printf("OH FUCK\n");
-        }
-
-        ((T*)ao->data)[actual_idx(i)] = v;
+        data[actual_idx(i)] = v;
     }
-    T& operator[](ind i) {
-        if (ao == NULL) {
-            printf("OH FUCK\n");
-	    fflush(stdout);
-        }
-
-        return ((T*)ao->data)[actual_idx(i)];
+    T& operator[](const ind& i) {
+        return data[actual_idx(i)];
     }
     
-    bool operator==(const pyarr<T>& o) {
+    bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
     }
 };

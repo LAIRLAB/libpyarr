@@ -43,6 +43,7 @@ def gen_everything():
                          ['arbin', 'int']]),
                inst_td(pair_tpl, ['size_t', 'size_t'], n_vecs=2), 
                inst_td(pair_tpl, ['float', 'float'], n_vecs = 1),
+               inst_td(pair_tpl, ['double', 'double'], n_vecs = 1),
                inst_td(pair_tpl, ['unsigned int', 'unsigned int']),
                inst_td(pair_tpl, ['unsigned long', 'unsigned long']),
                inst_td(pair_tpl, ['bool', 'bool']),
@@ -65,8 +66,10 @@ def gen_everything():
            
     things = [pyarr_converter('int', 'NPY_INT32'),
               pyarr_converter('short', 'NPY_INT16'),
+              pyarr_converter('long', 'NPY_INT64'),
               pyarr_converter('unsigned int', 'NPY_UINT32'),
               pyarr_converter('unsigned short', 'NPY_UINT16'),
+              pyarr_converter('unsigned long', 'NPY_UINT64'),
               pyarr_converter('double', 'NPY_FLOAT64'),
               pyarr_converter('float', 'NPY_FLOAT32'),
               pyarr_converter('unsigned char', 'NPY_UINT8'),
