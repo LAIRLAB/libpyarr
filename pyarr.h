@@ -268,9 +268,14 @@ class pyarr {
     T& operator[](const ind& i) {
         return ((T*)ao->data)[actual_idx(i)];
     }
-    
-    bool operator==(const pyarr<T>& o) {
+
+    bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
+    }
+ private:
+    /* this should never compile! Does not make sense! */
+    T& operator[] (const int& i) {
+        return T();
     }
 };
 
