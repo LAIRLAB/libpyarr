@@ -50,9 +50,12 @@ def main():
 
                     #success if this passes
                     if os.path.isfile(lib) and os.path.isdir(include_dir):
-                        sys.stdout.write(lib)
-                        sys.stderr.write(include_dir)
-                        found = True
+                        bin_path = '%s/bin/python' % (full_dir)
+                        unicode_support = os.system("%s -c 'import sys; sys.exit(sys.maxunicode > 65535)'" % (bin_path))
+                        if unicode_support == 0:
+                            sys.stdout.write(lib)
+                            sys.stderr.write(include_dir)
+                            found = True
             break
         if found:
             break
