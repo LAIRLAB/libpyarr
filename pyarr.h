@@ -280,6 +280,11 @@ class pyarr {
     bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
     }
+ private:
+    /* this should never compile! Does not make sense! */
+    T& operator[] (const int& i) {
+        return T();
+    }
 };
 
 #endif // _IMARR_H
