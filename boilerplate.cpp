@@ -297,8 +297,6 @@ PyObject *vecvec_to_numpy(const vector<const vector<real> *> v)
 PyObject *vecvec_real_to_numpy(vector<vector<real> > v) 
 {
     npy_intp dims[] = {v.size(), v[0].size()};
-    printf("dims[0]: %d, dims[1]: %d\n", dims[0], dims[1]);
-    fflush(stdout);
 
     PyArrayObject *retval;
     retval = (PyArrayObject*)PyArray_SimpleNew(2, dims, npy_real_type());
