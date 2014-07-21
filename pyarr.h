@@ -133,7 +133,7 @@ class pyarr {
             }
         }
     }
-
+    
     void do_constructor(int nd, long int* _dims) {
 #pragma omp critical (_pyarr) 
         {
@@ -286,6 +286,22 @@ class pyarr {
         return T();
     }
 };
+
+
+/* soulless hack to dynamically convert a pyarr to a square n-tensor (embedded vectors)
+   ---> see pyarr_to_v.py
+*/
+template<typename R, typename T> R pyarr_to_v(pyarr<T> arr)
+{
+    boost::python::object module = boost::python::import("__main__");
+    boost::python::object main_namespace = module.attr("__dict__");
+    main_namespace["cur_arr"] = arr;
+    boost::python::exec_file("pyarr_to_v.py", main_namespace, main_namespace);
+    boost::python::object py_converter_func = main_namespace["pyarr_to_v"];
+    boost::python::object thevector = py_converter_func(arr);
+    R vect = boost::python::extract<R>(thevector);
+    return vect;
+}
 
 #endif // _IMARR_H
 

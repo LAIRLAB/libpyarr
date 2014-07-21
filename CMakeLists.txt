@@ -12,7 +12,7 @@ add_library(boost_common
 set(CMAKE_BUILD_TYPE Debug)
 
 # Add -DDEBUG if you want range checking on your pyarrs
-set(CMAKE_CXX_FLAGS "-O3") # -DDEBUG")
+set(CMAKE_CXX_FLAGS "-O3")
 
 set_target_properties(boost_common PROPERTIES SUFFIX ".so")
 target_link_libraries(boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})

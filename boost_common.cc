@@ -14,6 +14,7 @@ using std::vector;
 using std::set;
 
 
+
 void boost_common() 
 {
     register_autogen_converters();
@@ -57,9 +58,20 @@ void boost_common()
 
 }
 
+// because of runtime conversions, will return a new numpy array instead of vectors
+// when called from python
+vector<vector<double> > pyarr_to_vvd_test(pyarr<double> x)
+{
+    return pyarr_to_v<vector<vector<double> >, double>(x);
+}
+
+
+
 BOOST_PYTHON_MODULE(libboost_common) 
 {
     PyEval_InitThreads();
     import_array();
     boost_common();
+
+    def("pyarr_to_v_test", pyarr_to_v_test);
 }
