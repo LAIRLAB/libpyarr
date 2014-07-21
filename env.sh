@@ -7,7 +7,12 @@ pathadd() {
 }
 pypathadd() {
     if [ -d "$1" ] && [[ ":$PYTHONPATH:" != *":$1:"* ]]; then
-        PYTHONPATH="$1:${PYTHONPATH:+":$PYTHONPATH"}"
+        PYTHONPATH="$1:${PYTHONPATH:+"$PYTHONPATH"}"
+    fi
+}
+ldpathadd() {
+    if [ -d "$1" ] && [[ ":$LD_LIBRARY_PATH:" != *":$1:"* ]]; then
+        LD_LIBRARY_PATH="$1:${LD_LIBRARY_PATH:+"$LD_LIBRARY_PATH"}"
     fi
 }
 
