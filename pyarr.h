@@ -296,7 +296,12 @@ template<typename R, typename T> R pyarr_to_v(pyarr<T> arr)
     boost::python::object module = boost::python::import("__main__");
     boost::python::object main_namespace = module.attr("__dict__");
     main_namespace["cur_arr"] = arr;
-    boost::python::exec_file("pyarr_to_v.py", main_namespace, main_namespace);
+
+    char *p = getenv("LIBPYARR_ROOT");
+    stringstream ss;
+    ss << p << "/" << "pyarr_to_v.py";
+
+    boost::python::exec_file(ss.str().c_str(), main_namespace, main_namespace);
     boost::python::object py_converter_func = main_namespace["pyarr_to_v"];
     boost::python::object thevector = py_converter_func(arr);
     R vect = boost::python::extract<R>(thevector);

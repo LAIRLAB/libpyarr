@@ -73,5 +73,5 @@ BOOST_PYTHON_MODULE(libboost_common)
     import_array();
     boost_common();
 
-    def("pyarr_to_v_test", pyarr_to_v_test);
+    def("pyarr_to_vvd_test", pyarr_to_vvd_test);
 }
