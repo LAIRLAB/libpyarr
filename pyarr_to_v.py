@@ -70,7 +70,7 @@ def actual_idx(idx, arr_shape):
     if len(idx) == 1:
         return idx[0]
     elif len(idx) == 2:
-        return idx[0]*arr_shape[0] + idx[1]
+        return idx[0]*arr_shape[1] + idx[1]
     elif len(idx) == 3:
         return idx[0]*arr_shape[1]*arr_shape[2] + idx[1]*arr_shape[2] + idx[2]
     elif len(idx) == 4:
