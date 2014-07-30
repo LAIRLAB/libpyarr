@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <typedef.h>
 #include <iostream>
+#include <boost_common.h>
 
 using std::vector;
 using std::string;

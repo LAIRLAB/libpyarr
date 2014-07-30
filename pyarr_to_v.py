@@ -4,6 +4,7 @@ import numpy
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     import libboost_common
+    import gtkutils.color_printer as gcp
 
 #for the ostensibly insane conversion of an arbitrary ndarray to a n-tensor
 #(vectors of vectors of ... vectors of data). if c++ calls this... better
@@ -83,11 +84,14 @@ def actual_idx(idx, arr_shape):
     
            
 
-
+def main():
+    a = numpy.random.random((500, 400))
+    gcp.gtime(pyarr_to_v, a)
         
-                
-            
-
+if __name__ == '__main__':                
+    main()
+    
+    
             
     
     
