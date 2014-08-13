@@ -31,3 +31,6 @@
 template<typename T> const T copy_object(const T& v) { return v; }
 void boost_common();
 
+
+PyObject* create_exception_class(const char* name, PyObject* baseTypeObj = PyExc_Exception);
+
