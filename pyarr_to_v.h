@@ -61,7 +61,7 @@ template<typename R, typename T>
 	}
 }
 
-// convert a pyarr to a vector tensore
+// convert a pyarr to a vector tensor
 template<typename R, typename T> R pyarr_to_v_tensor(pyarr<T> arr)
 {
     R final_data;
