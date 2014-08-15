@@ -56,13 +56,11 @@ class ind {
 	    if (ii.size() > 4) throw std::runtime_error("pyarr::ind index out of bounds");
 	    nd = ii.size();
 
-	    cout << "nd" << nd << endl;
 	    for (size_t i = 0; i < ii.size(); i++)
 		{
 		    cout << ii.at(i) << " ";
 		    inds[i] = ii.at(i);
 		}
-	    cout << endl;
 	}
 };
 
@@ -311,7 +309,10 @@ class pyarr {
 
 
 /* soulless hack to dynamically convert a pyarr to a square n-tensor (embedded vectors)
-   ---> see pyarr_to_v.py
+   ---> see pyarr_to_v.py... -nick
+
+   edit:
+   don't use this! use the c++ pyarr_to_v_tensor instead - nick
 */
 template<typename R, typename T> R pyarr_to_v(pyarr<T> arr)
 {

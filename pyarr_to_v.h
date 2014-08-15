@@ -1,5 +1,4 @@
-#ifndef __PYARR_TO_V_H
-#define __PYARR_TO_V_H
+#pragma once
 
 #include <boost_common.h>
 #include <pyarr.h>
@@ -20,8 +19,6 @@ template<typename R, typename T>
 	{
 	    vector<size_t> full_idx = pre_idx;
 	    full_idx.push_back(x);
-	    for (int ii =0; ii < full_idx.size(); ii++) cout << "full_idx[ " << ii << "]: " << full_idx[ii];
-	    cout << endl;
 	    v.push_back(arr[ind(full_idx)]);
 	}
 }
@@ -70,6 +67,3 @@ template<typename R, typename T> R pyarr_to_v_tensor(pyarr<T> arr)
     return final_data;
 }
 
-
-
-#endif
