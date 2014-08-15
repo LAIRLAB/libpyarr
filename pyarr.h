@@ -26,13 +26,15 @@ static int npy_real_type() {
 class ind {
  public:
     int nd;
+    long int inds[4];
+
     ind(const ind& o) {
         nd = o.nd;
         for (int i=0; i<4; i++) {
             inds[i] = o.inds[i];
         }
     }
-    long int inds[4];
+
     ind(int _i, int _j, int _k) {
         nd=3;
         inds[0] = _i;
@@ -48,6 +50,20 @@ class ind {
         nd=1;
         inds[0] = _i;
     }
+
+    ind(vector<size_t> ii)
+	{
+	    if (ii.size() > 4) throw std::runtime_error("pyarr::ind index out of bounds");
+	    nd = ii.size();
+
+	    cout << "nd" << nd << endl;
+	    for (size_t i = 0; i < ii.size(); i++)
+		{
+		    cout << ii.at(i) << " ";
+		    inds[i] = ii.at(i);
+		}
+	    cout << endl;
+	}
 };
 
 template<class T>
@@ -138,8 +154,9 @@ class pyarr {
     void do_constructor(int nd, long int* _dims) {
 #pragma omp critical (_pyarr) 
         {
-            //printf("pyarr main constructor\n");
-            //printf("making pyarr of nd %d\n", nd);
+            /* printf("pyarr main constructor\n"); */
+            /* printf("making pyarr of nd %d\n", nd); */
+
             if (nd > 4) {
                 printf("OH DEAR ND KINDA BIG %d\n", nd);
             }
@@ -147,10 +164,13 @@ class pyarr {
             for (int i=0; i<nd; i++) {
                 dims.push_back(_dims[i]);
             }
-            //printf("dims.size() is now %lu\n", dims.size());
-            //printf("dims[0] is %ld\n", dims[0]);
-            
+            /* printf("dims.size() is now %lu\n", dims.size()); */
+            /* printf("dims[0] is %ld\n", dims[0]); */
+	    /* printf("dims[1] is %ld\n", dims[1]); */
+
             T dummy;
+
+	    /* printf("numpy type: %d\n", lookup_npy_type<T>(dummy)); */
             
             ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
                                                    _dims, 
@@ -281,6 +301,7 @@ class pyarr {
     bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
     }
+
  private:
     /* this should never compile! Does not make sense! */
     T& operator[] (const int& i) {
