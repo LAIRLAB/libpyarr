@@ -58,7 +58,6 @@ class ind {
 
 	    for (size_t i = 0; i < ii.size(); i++)
 		{
-		    cout << ii.at(i) << " ";
 		    inds[i] = ii.at(i);
 		}
 	}
