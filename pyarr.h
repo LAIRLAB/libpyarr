@@ -148,6 +148,14 @@ class pyarr {
         }
     }
     
+    void zero_data()
+    {
+#pragma omp critical (_pyarr)
+	{
+	    PyArray_FILLWBYTE(ao, 0);
+	}
+    }
+
     void do_constructor(int nd, long int* _dims) {
 #pragma omp critical (_pyarr) 
         {
