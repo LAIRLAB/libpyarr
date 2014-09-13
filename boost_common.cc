@@ -29,10 +29,38 @@ PyObject* create_exception_class(const char* name, PyObject* baseTypeObj)
     return typeObj;
 }
 
+
+// exposition of pyarr functions to a dummy class instantiable in Python via pyarr_cast
+class pyarr_cpp : public pyarr<real> 
+{ public:
+    pyarr_cpp(const pyarr<real> &o) : pyarr<real>(o) {};
+};
+
+pyarr_cpp pyarr_cast(PyObject *a) 
+{ 
+    return pyarr_cpp(pyarr<real>((PyArrayObject *)a));
+}
+
+long int (pyarr_cpp::*fx0)(int a) = &pyarr_cpp::actual_idx;
+long int (pyarr_cpp::*fx1)(int a, int b) = &pyarr_cpp::actual_idx;
+long int (pyarr_cpp::*fx2)(int a, int b, int c) = &pyarr_cpp::actual_idx;
+long int (pyarr_cpp::*fx3)(int a, int b, int c, int d) = &pyarr_cpp::actual_idx;
+
 void boost_common() 
 {
     register_autogen_converters();
     register_common_converters();
+
+    // casting for class to be used in python for debugging a pyarr
+    def("pyarr_cast", pyarr_cast);
+    class_<pyarr_cpp>("pyarr_cpp", init<pyarr<real> >())
+	.def("actual_idx", fx0)
+	.def("actual_idx", fx1)
+	.def("actual_idx", fx2)
+	.def("actual_idx", fx3)
+	.def("get_nd", &pyarr_cpp::get_nd)
+	.def_readonly("dims", &pyarr_cpp::dims)
+	;
 
     class_<std::pair<unsigned int, real> >("uint_real_pair")
         .def_readwrite("first", &std::pair<unsigned int, real>::first)

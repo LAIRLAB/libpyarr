@@ -3,4 +3,3 @@ typedef float real;
 #else
 typedef double real;
 #endif
-

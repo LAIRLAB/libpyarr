@@ -28,11 +28,20 @@ class ind {
     int nd;
     long int inds[4];
 
-    ind(const ind& o) {
+    ind(const ind& o) 
+	{
         nd = o.nd;
         for (int i=0; i<4; i++) {
             inds[i] = o.inds[i];
         }
+    }
+
+    ind(int _i, int _j, int _k, int _l) {
+        nd=4;
+        inds[0] = _i;
+        inds[1] = _j;
+        inds[2] = _k;
+        inds[3] = _l;
     }
 
     ind(int _i, int _j, int _k) {
@@ -122,6 +131,10 @@ int lookup_npy_type(T v) {
     return NPY_FLOAT64;
 }
 
+namespace throwaway_mx {
+    long int multiply(long int x, long int y) {return x*y;}
+}
+
 template<class T>
 class pyarr {
  public:
@@ -180,6 +193,7 @@ class pyarr {
             ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
                                                    _dims, 
                                                    lookup_npy_type<T>(dummy));
+
             if (ao == NULL) {
                 printf("OH NO AO IS NULL ON ARGS %lu, ", dims.size());
                 for (int i=0; i<dims.size(); i++) {
@@ -250,6 +264,42 @@ class pyarr {
         return the_copy;
     }
 
+    pyarr<T> flatten() const
+	{
+	    long int n_entries = std::accumulate(dims.begin(), dims.end(), 1, throwaway_mx::multiply);
+	    vector<long int> dims(1, 0);
+	    dims[0] = n_entries;
+	    pyarr<T> flattened(dims);
+
+	    for(int idx = 0; idx < n_entries; idx++)
+		{
+		    flattened[ind(idx)] = data[idx];
+		}
+	    return flattened;
+	}
+    
+    long int actual_idx(int a)
+    {
+	return actual_idx(ind(a));
+    }
+
+    long int actual_idx(int a, int b)
+    {
+	return actual_idx(ind(a, b));
+    }
+
+    long int actual_idx(int a, int b, int c)
+    {
+	return actual_idx(ind(a, b, c));
+    }
+
+    long int actual_idx(int a, int b, int c, int d)
+    {
+	return actual_idx(ind(a, b, c, d));
+    }
+    
+    size_t get_nd() {return dims.size();}
+
     long int actual_idx(const ind& idx) {
 #ifndef DEBUG
         if (idx.nd == 1) {
@@ -293,15 +343,19 @@ class pyarr {
         return final_idx;
 #endif
     }
-    T getitem(ind i) const {
+    T getitem(ind i) 
+    {
         return data[actual_idx(i)];
     }
+
     void setitem(ind i, T v) {
         data[actual_idx(i)] = v;
     }
     T& operator[](const ind& i) {
         return data[actual_idx(i)];
     }
+
+    
     
     bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
@@ -313,7 +367,6 @@ class pyarr {
         return T();
     }
 };
-
 
 /* soulless hack to dynamically convert a pyarr to a square n-tensor (embedded vectors)
    ---> see pyarr_to_v.py... -nick

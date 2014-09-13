@@ -36,3 +36,8 @@ def l2v(l, t):
     return v
 
 
+def vecpair2ltp(vp):
+    l = []
+    for p in vp:
+        l.append((p.first, p.second))
+    return l
