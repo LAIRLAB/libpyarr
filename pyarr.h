@@ -131,9 +131,7 @@ int lookup_npy_type(T v) {
     return NPY_FLOAT64;
 }
 
-namespace throwaway_mx {
-    long int multiply(long int x, long int y) {return x*y;}
-}
+
 
 template<class T>
 class pyarr {
@@ -180,11 +178,9 @@ class pyarr {
             }
             dims.clear();
             for (int i=0; i<nd; i++) {
+
                 dims.push_back(_dims[i]);
             }
-            /* printf("dims.size() is now %lu\n", dims.size()); */
-            /* printf("dims[0] is %ld\n", dims[0]); */
-	    /* printf("dims[1] is %ld\n", dims[1]); */
 
             T dummy;
 
@@ -266,10 +262,15 @@ class pyarr {
 
     pyarr<T> flatten() const
 	{
-	    long int n_entries = std::accumulate(dims.begin(), dims.end(), 1, throwaway_mx::multiply);
-	    vector<long int> dims(1, 0);
-	    dims[0] = n_entries;
-	    pyarr<T> flattened(dims);
+	    long int n_entries = 1;
+	    for(int idx = 0; idx < dims.size(); idx++) 
+		{
+		    n_entries *= this->dims[idx];
+		}
+
+	    vector<long int> new_dims(1, 0);
+	    new_dims[0] = n_entries;
+	    pyarr<T> flattened(new_dims);
 
 	    for(int idx = 0; idx < n_entries; idx++)
 		{
