@@ -247,7 +247,7 @@ class pyarr {
         }
     }
 
-    pyarr<T> copy() {
+    pyarr<T> copy() const {
         //printf("pyarr actual copy\n");
         pyarr<T> the_copy(ao->nd, ao->dimensions);
         long int actual_len = 1;
@@ -318,6 +318,8 @@ class pyarr {
                     idx.inds[2]*dims[3] + 
                     idx.inds[3]);
         }
+	else {throw std::runtime_error("index dims not understood!"); return 0;}
+    }
 #else
         long int final_idx = 0;
 
@@ -342,8 +344,9 @@ class pyarr {
             final_idx += this_idx; 
         }
         return final_idx;
-#endif
     }
+#endif
+
     T getitem(ind i) 
     {
         return data[actual_idx(i)];
