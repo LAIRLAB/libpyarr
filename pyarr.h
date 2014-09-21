@@ -28,6 +28,8 @@ class ind {
     int nd;
     long int inds[4];
 
+    ind() {nd = 0;}//cout << "warning, creating empty ind" << endl;};
+
     ind(const ind& o) 
 	{
         nd = o.nd;
@@ -246,6 +248,44 @@ class pyarr {
 		Py_DECREF(ao);
         }
     }
+    
+    // element-wise sum with very minimal checking
+    pyarr<T> operator+(const pyarr<T>& o) const
+    {
+	assert(o.dims == dims);
+	long int n_entries = get_n_entries();
+	pyarr<T> new_arr(o.dims);
+	
+	for(int idx =0; idx < n_entries; idx++)
+	{
+	    new_arr.data[idx] = data[idx] + o.data[idx];
+	}
+	return new_arr;
+    }
+
+    pyarr<T> operator-(const pyarr<T>& o) const
+    {
+	assert(o.dims == dims);
+	long int n_entries = get_n_entries();
+	pyarr<T> new_arr(o.dims);
+	
+	for(int idx =0; idx < n_entries; idx++)
+	{
+	    new_arr.data[idx] = data[idx] - o.data[idx];
+	}
+	return new_arr;
+    }
+
+    T sum() const
+    {
+	long int n_entries = get_n_entries();
+	T xsum = 0;
+	for(int idx =0; idx < n_entries; idx++)
+	{
+	    xsum += data[idx];
+	}
+	return xsum;
+    }
 
     pyarr<T> copy() const {
         //printf("pyarr actual copy\n");
@@ -258,6 +298,16 @@ class pyarr {
             the_copy.data[i] = data[i];
         }
         return the_copy;
+    }
+
+    long int get_n_entries() const
+    {
+	long int n_entries = 1;
+	for(int idx = 0; idx < dims.size(); idx++) 
+	{
+	    n_entries *= this->dims[idx];
+	}
+	return n_entries;
     }
 
     pyarr<T> flatten() const
@@ -278,6 +328,23 @@ class pyarr {
 		}
 	    return flattened;
 	}
+
+    size_t count_nonzero() const
+    {
+	
+	long int n_entries = 1;
+	for(int idx = 0; idx < dims.size(); idx++) 
+	    {
+		n_entries *= this->dims[idx];
+	    }
+	
+	size_t nnz = 0;
+	for(int idx = 0; idx < n_entries; idx++)
+	    {
+		if (data[idx] !=0) nnz++;
+	    }
+	return nnz;
+    }
     
     long int actual_idx(int a)
     {
@@ -318,7 +385,8 @@ class pyarr {
                     idx.inds[2]*dims[3] + 
                     idx.inds[3]);
         }
-	else {throw std::runtime_error("index dims not understood!"); return 0;}
+	else {cout << "idx.nd: " << idx.nd << endl;
+	    throw std::runtime_error("index dims not understood!"); return 0;}
     }
 #else
         long int final_idx = 0;
