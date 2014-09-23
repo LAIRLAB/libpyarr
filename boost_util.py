@@ -29,7 +29,10 @@ def l2v(l, t):
     elif t == 'unsigned int':
         zz = libboost_common.uint_vec()
         for i in l: 
-            zz.append(i)
+            if hasattr(i, 'item'):
+                zz.append(numpy.asscalar(i))
+            else:
+                zz.append(i)
         return zz
     else:
         raise RuntimeError("boost_util.l2v unrecognized type: {}".format(t))
