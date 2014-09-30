@@ -44,6 +44,7 @@ def gen_everything():
                inst_td(pair_tpl, ['size_t', 'size_t'], n_vecs=2), 
                inst_td(pair_tpl, ['float', 'float'], n_vecs = 1),
                inst_td(pair_tpl, ['double', 'double'], n_vecs = 1),
+               inst_td(pair_tpl, ['int', 'int'], n_vecs = 1),
                inst_td(pair_tpl, ['unsigned int', 'unsigned int']),
                inst_td(pair_tpl, ['unsigned long', 'unsigned long']),
                inst_td(pair_tpl, ['bool', 'bool']),

@@ -26,8 +26,21 @@ def l2v(l, t):
             if i.dtype != t:
                 raise RuntimeError("list entry type not {}".format(t))
             v.append(i)
+    elif t == 'unsigned int':
+        zz = libboost_common.uint_vec()
+        for i in l: 
+            if hasattr(i, 'item'):
+                zz.append(numpy.asscalar(i))
+            else:
+                zz.append(i)
+        return zz
     else:
-        raise RuntimeError("boost_util.l2v unrecognized type: {}".format(v))
+        raise RuntimeError("boost_util.l2v unrecognized type: {}".format(t))
     return v
 
 
+def vecpair2ltp(vp):
+    l = []
+    for p in vp:
+        l.append((p.first, p.second))
+    return l

@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <typedef.h>
 #include <iostream>
+#include <boost_common.h>
 
 using std::vector;
 using std::string;
@@ -25,13 +26,26 @@ static int npy_real_type() {
 class ind {
  public:
     int nd;
-    ind(const ind& o) {
+    long int inds[4];
+
+    ind() {nd = 0;}//cout << "warning, creating empty ind" << endl;};
+
+    ind(const ind& o) 
+	{
         nd = o.nd;
         for (int i=0; i<4; i++) {
             inds[i] = o.inds[i];
         }
     }
-    long int inds[4];
+
+    ind(int _i, int _j, int _k, int _l) {
+        nd=4;
+        inds[0] = _i;
+        inds[1] = _j;
+        inds[2] = _k;
+        inds[3] = _l;
+    }
+
     ind(int _i, int _j, int _k) {
         nd=3;
         inds[0] = _i;
@@ -47,6 +61,17 @@ class ind {
         nd=1;
         inds[0] = _i;
     }
+
+    ind(vector<size_t> ii)
+	{
+	    if (ii.size() > 4) throw std::runtime_error("pyarr::ind index out of bounds");
+	    nd = ii.size();
+
+	    for (size_t i = 0; i < ii.size(); i++)
+		{
+		    inds[i] = ii.at(i);
+		}
+	}
 };
 
 template<class T>
@@ -108,6 +133,8 @@ int lookup_npy_type(T v) {
     return NPY_FLOAT64;
 }
 
+
+
 template<class T>
 class pyarr {
  public:
@@ -133,27 +160,38 @@ class pyarr {
             }
         }
     }
+    
+    void zero_data()
+    {
+#pragma omp critical (_pyarr)
+	{
+	    PyArray_FILLWBYTE(ao, 0);
+	}
+    }
 
     void do_constructor(int nd, long int* _dims) {
 #pragma omp critical (_pyarr) 
         {
-            //printf("pyarr main constructor\n");
-            //printf("making pyarr of nd %d\n", nd);
+            /* printf("pyarr main constructor\n"); */
+            /* printf("making pyarr of nd %d\n", nd); */
+
             if (nd > 4) {
                 printf("OH DEAR ND KINDA BIG %d\n", nd);
             }
             dims.clear();
             for (int i=0; i<nd; i++) {
+
                 dims.push_back(_dims[i]);
             }
-            //printf("dims.size() is now %lu\n", dims.size());
-            //printf("dims[0] is %ld\n", dims[0]);
-            
+
             T dummy;
+
+	    /* printf("numpy type: %d\n", lookup_npy_type<T>(dummy)); */
             
             ao = (PyArrayObject*)PyArray_SimpleNew(dims.size(), 
                                                    _dims, 
                                                    lookup_npy_type<T>(dummy));
+
             if (ao == NULL) {
                 printf("OH NO AO IS NULL ON ARGS %lu, ", dims.size());
                 for (int i=0; i<dims.size(); i++) {
@@ -210,8 +248,46 @@ class pyarr {
 		Py_DECREF(ao);
         }
     }
+    
+    // element-wise sum with very minimal checking
+    pyarr<T> operator+(const pyarr<T>& o) const
+    {
+	assert(o.dims == dims);
+	long int n_entries = get_n_entries();
+	pyarr<T> new_arr(o.dims);
+	
+	for(int idx =0; idx < n_entries; idx++)
+	{
+	    new_arr.data[idx] = data[idx] + o.data[idx];
+	}
+	return new_arr;
+    }
 
-    pyarr<T> copy() {
+    pyarr<T> operator-(const pyarr<T>& o) const
+    {
+	assert(o.dims == dims);
+	long int n_entries = get_n_entries();
+	pyarr<T> new_arr(o.dims);
+	
+	for(int idx =0; idx < n_entries; idx++)
+	{
+	    new_arr.data[idx] = data[idx] - o.data[idx];
+	}
+	return new_arr;
+    }
+
+    T sum() const
+    {
+	long int n_entries = get_n_entries();
+	T xsum = 0;
+	for(int idx =0; idx < n_entries; idx++)
+	{
+	    xsum += data[idx];
+	}
+	return xsum;
+    }
+
+    pyarr<T> copy() const {
         //printf("pyarr actual copy\n");
         pyarr<T> the_copy(ao->nd, ao->dimensions);
         long int actual_len = 1;
@@ -223,6 +299,74 @@ class pyarr {
         }
         return the_copy;
     }
+
+    long int get_n_entries() const
+    {
+	long int n_entries = 1;
+	for(int idx = 0; idx < dims.size(); idx++) 
+	{
+	    n_entries *= this->dims[idx];
+	}
+	return n_entries;
+    }
+
+    pyarr<T> flatten() const
+	{
+	    long int n_entries = 1;
+	    for(int idx = 0; idx < dims.size(); idx++) 
+		{
+		    n_entries *= this->dims[idx];
+		}
+
+	    vector<long int> new_dims(1, 0);
+	    new_dims[0] = n_entries;
+	    pyarr<T> flattened(new_dims);
+
+	    for(int idx = 0; idx < n_entries; idx++)
+		{
+		    flattened[ind(idx)] = data[idx];
+		}
+	    return flattened;
+	}
+
+    size_t count_nonzero() const
+    {
+	
+	long int n_entries = 1;
+	for(int idx = 0; idx < dims.size(); idx++) 
+	    {
+		n_entries *= this->dims[idx];
+	    }
+	
+	size_t nnz = 0;
+	for(int idx = 0; idx < n_entries; idx++)
+	    {
+		if (data[idx] !=0) nnz++;
+	    }
+	return nnz;
+    }
+    
+    long int actual_idx(int a)
+    {
+	return actual_idx(ind(a));
+    }
+
+    long int actual_idx(int a, int b)
+    {
+	return actual_idx(ind(a, b));
+    }
+
+    long int actual_idx(int a, int b, int c)
+    {
+	return actual_idx(ind(a, b, c));
+    }
+
+    long int actual_idx(int a, int b, int c, int d)
+    {
+	return actual_idx(ind(a, b, c, d));
+    }
+    
+    size_t get_nd() {return dims.size();}
 
     long int actual_idx(const ind& idx) {
 #ifndef DEBUG
@@ -241,6 +385,9 @@ class pyarr {
                     idx.inds[2]*dims[3] + 
                     idx.inds[3]);
         }
+	else {cout << "idx.nd: " << idx.nd << endl;
+	    throw std::runtime_error("index dims not understood!"); return 0;}
+    }
 #else
         long int final_idx = 0;
 
@@ -265,27 +412,56 @@ class pyarr {
             final_idx += this_idx; 
         }
         return final_idx;
-#endif
     }
-    T getitem(ind i) const {
+#endif
+
+    T getitem(ind i) 
+    {
         return data[actual_idx(i)];
     }
+
     void setitem(ind i, T v) {
         data[actual_idx(i)] = v;
     }
     T& operator[](const ind& i) {
         return data[actual_idx(i)];
     }
+
+    
     
     bool operator==(const pyarr<T>& o) const {
         return (ao==o.ao);
     }
+
  private:
     /* this should never compile! Does not make sense! */
     T& operator[] (const int& i) {
         return T();
     }
 };
+
+/* soulless hack to dynamically convert a pyarr to a square n-tensor (embedded vectors)
+   ---> see pyarr_to_v.py... -nick
+
+   edit:
+   don't use this! use the c++ pyarr_to_v_tensor instead - nick
+*/
+template<typename R, typename T> R pyarr_to_v(pyarr<T> arr)
+{
+    boost::python::object module = boost::python::import("__main__");
+    boost::python::object main_namespace = module.attr("__dict__");
+    main_namespace["cur_arr"] = arr;
+
+    char *p = getenv("LIBPYARR_ROOT");
+    stringstream ss;
+    ss << p << "/" << "pyarr_to_v.py";
+
+    boost::python::exec_file(ss.str().c_str(), main_namespace, main_namespace);
+    boost::python::object py_converter_func = main_namespace["pyarr_to_v"];
+    boost::python::object thevector = py_converter_func(arr);
+    R vect = boost::python::extract<R>(thevector);
+    return vect;
+}
 
 #endif // _IMARR_H
 
