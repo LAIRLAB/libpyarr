@@ -31,14 +31,21 @@ PyObject* create_exception_class(const char* name, PyObject* baseTypeObj)
 
 
 // exposition of pyarr functions to a dummy class instantiable in Python via pyarr_cast
-class pyarr_cpp : public pyarr<real> 
+class pyarr_cpp : public pyarr<libpyarr::real> 
 { public:
-    pyarr_cpp(const pyarr<real> &o) : pyarr<real>(o) {};
+    pyarr_cpp(const pyarr<libpyarr::real> &o) : pyarr<libpyarr::real>(o) {};
 };
+
+
+pyarr_cpp pyarr_cast_2(pyarr<libpyarr::real> a)
+{ 
+    return pyarr_cpp(a);
+}
+
 
 pyarr_cpp pyarr_cast(PyObject *a) 
 { 
-    return pyarr_cpp(pyarr<real>((PyArrayObject *)a));
+    return pyarr_cpp(pyarr<libpyarr::real>((PyArrayObject *)a));
 }
 
 long int (pyarr_cpp::*fx0)(int a) = &pyarr_cpp::actual_idx;
@@ -53,6 +60,7 @@ void boost_common()
 
     // casting for class to be used in python for debugging a pyarr
     def("pyarr_cast", pyarr_cast);
+    def("pyarr_cast_2", pyarr_cast_2);
     class_<pyarr_cpp>("pyarr_cpp", init<pyarr<real> >())
 	.def("actual_idx", fx0)
 	.def("actual_idx", fx1)
