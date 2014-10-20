@@ -1,8 +1,12 @@
-import numpy, warnings, pdb
+import numpy, warnings, pdb, os
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
     import libboost_common as lbc
+
+def test_environ():
+    x = os.environ['LIBPYARR_ROOT']
+    assert(os.path.isdir(x))
 
 def test_to_vvd():
     a = numpy.random.random((3,5))

@@ -30,7 +30,7 @@ def main():
     os.system('cd %s'%orig_dir)
 
     if not args.no_test:
-        x_test_x.test_all()
+        x_test_x.test_all_modules()
     else:
         print "\n\nNOT RUNNING LIBPYARR TEST! \n\n"
     
