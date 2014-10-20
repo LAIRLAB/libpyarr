@@ -435,9 +435,11 @@ class pyarr {
 
  private:
     /* this should never compile! Does not make sense! */
-    T& operator[] (const int& i) {
-        return T();
-    }
+
+    // Does anyone use this? let's remove...
+    /* T& operator[] (const int& i) { */
+    /*     return T(); */
+    /* } */
 };
 
 /* soulless hack to dynamically convert a pyarr to a square n-tensor (embedded vectors)

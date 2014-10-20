@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 import argparse, os, sys
 import gen_boilerplate as gen
+import x_test_x
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--clean', action='store_true')
     parser.add_argument('-j', '--nbr-jobs', default=4)
     parser.add_argument('-f', '--use-floats', action='store_true')
+    parser.add_argument('--no-test', action = 'store_true')
     args = parser.parse_args()
 
     if args.use_floats:
@@ -26,6 +28,12 @@ def main():
         os.system('rm -rf CMakeFiles/ CMakeCache.txt Makefile bin lib')
 
     os.system('cd %s'%orig_dir)
+
+    if not args.no_test:
+        x_test_x.test_all()
+    else:
+        print "\n\nNOT RUNNING LIBPYARR TEST! \n\n"
+    
 
 if __name__=='__main__':
     gen.pdbwrap(main)()
