@@ -29,9 +29,9 @@ def main():
 
     os.system('cd %s'%orig_dir)
 
-    if not args.no_test:
+    if not args.no_test and not args.clean:
         x_test_x.test_all_modules()
-    else:
+    elif not args.clean:
         print "\n\nNOT RUNNING LIBPYARR TEST! \n\n"
     
 

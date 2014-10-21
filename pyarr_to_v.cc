@@ -28,16 +28,20 @@ void run() {
     arr[ind(dims[0]-1, dims[1]-1, dims[2]-1)] = 999;
     
     vector<vector<vector<double> > > vv = pyarr_to_v_tensor<vector<vector<vector<double> > >, double>(arr);
+}
 
-     for(int i=0; i < vv.size(); i++) 
-	{
-	    for(int j=0; j < vv[i].size(); j++) 
-		{
-		    for(int k=0; k < vv[i][j].size() ; k++) {
-			cout << "arr[" << i << "," << j << ", " << k << "]: " << vv.at(i).at(j).at(k) << endl;
-		    }
-		}
-	}
+vector<vector<double> > pyarr_to_2d_vec_double(pyarr<double> x)
+{
+    if (x.dims.size() != 2)
+	throw std::runtime_error("pyarr input dimensions are not 2d");
+    return pyarr_to_v_tensor<vector<vector<double> >, double>(x);
+}
+
+vector<vector<vector<double> > > pyarr_to_3d_vec_double(pyarr<double> x)
+{
+    if (x.dims.size() != 3)
+	throw std::runtime_error("pyarr input dimensions are not 2d");
+    return pyarr_to_v_tensor<vector<vector<vector<double> > >, double>(x);
 }
 
 
@@ -48,4 +52,7 @@ BOOST_PYTHON_MODULE(libpyarr_to_v)
     boost_common();
 
     def("run", run);
+
+    def("pyarr_to_2d_vec_double", pyarr_to_2d_vec_double);
+    def("pyarr_to_3d_vec_double", pyarr_to_3d_vec_double);
 }

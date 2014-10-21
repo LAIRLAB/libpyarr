@@ -2,6 +2,8 @@
 
 #include <boost_common.h>
 #include <pyarr.h>
+
+#include <stdexcept>
 using boost::python::object;
 
 // create dummy fill_final for every level except the lowest level, at which we call the real one
@@ -58,11 +60,25 @@ template<typename R, typename T>
 	}
 }
 
+template <class A, class B>
+struct CheckTypes
+{
+    static const bool value = false;
+};
+
+template <class A>
+struct CheckTypes<A, A>
+{
+    static const bool value = true;
+};
+
+
 // convert a pyarr to a vector tensor
 template<typename R, typename T> R pyarr_to_v_tensor(pyarr<T> arr)
 {
     R final_data;
     vector<size_t> pre_idx;
+
     pyarr_fill_vector<R, T>(final_data, arr.dims.size(), arr, pre_idx);
     return final_data;
 }

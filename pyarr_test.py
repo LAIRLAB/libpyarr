@@ -16,12 +16,10 @@ def test_to_vvd():
         for y in range(a.shape[1]):
             n = a[x][y]
             assert(n == av[x][y])
-    assert(type(av[0]) == lbc.double_vec)
 
 def test_pyarr_cast():
     a = numpy.random.random((3,5))    
     ac = lbc.pyarr_cast(a)
-    assert(type(ac) == lbc.pyarr_cpp)
     assert(ac.get_nd() == 2)
 
 def test_uint_pair():
@@ -44,8 +42,7 @@ def expect_error(func, err, *args, **kwargs):
     except err:
         pass
     except Exception as e:
-        raise AssertionError("got unexpected exception: {}".format(e))
+        raise AssertionError("got unexpected exception: {}: {}".format(type(e), e))
     else:
-        raise AssertionError("didn't get expected exception")
-    
+        raise AssertionError("didn't get expected exception")    
 
