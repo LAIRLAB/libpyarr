@@ -1,4 +1,4 @@
-import numpy, warnings
+import numpy, warnings, pdb
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -24,8 +24,16 @@ def l2v(l, t):
             if not isinstance(i, numpy.ndarray):
                 raise RuntimeError("list entry not ndarray")
             if i.dtype != t:
-                raise RuntimeError("list entry type not {}".format(t))
-            v.append(i)
+                raise RuntimeError("list entry type not {}: {}".format(t, i.dtype))
+            v.append(i.copy())
+    elif t == numpy.uint8:
+        v = libboost_common.pyarr_unsigned_char_vec()
+        for i in l:
+            if not isinstance(i, numpy.ndarray):
+                raise RuntimeError("list entry not ndarray")
+            if i.dtype != t:
+                raise RuntimeError("list entry type not {}: {}".format(t, i.dtype))
+            v.append(i.copy())
     elif t == 'unsigned int':
         zz = libboost_common.uint_vec()
         for i in l: 
