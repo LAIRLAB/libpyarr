@@ -2,12 +2,13 @@ You need the following libraries:
 
 If you use macports: 
 sudo port selfupdate
-sudo port install cmake py27-numpy, py27-scipy, boost +python27, py27-pil
+sudo port install cmake py27-numpy py27-scipy py27-pil py27-pytest
+sudo port install boost +python27 
 
 If you use apt: 
 sudo apt-get update
 sudo apt-get install python2.7-dev python-scipy python-cairo libboost-python-dev libboost-system-dev
-libboost-thread-dev cmake 
+libboost-thread-dev cmake python-pytest
 
 Then, do 
 

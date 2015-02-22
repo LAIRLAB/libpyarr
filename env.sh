@@ -1,5 +1,6 @@
 #!/usr/bin/bash
-CURRENT_DIR="$( dirname "${BASH_SOURCE[0]}" )"
+# this is right, don't change it
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 pathadd() {
     if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
