@@ -10,7 +10,7 @@ It is sufficiently convenient to do this that users of this library tend to comp
 writing top-level executables in C++.
 
 So, for example, if you would like to pass a numpy array of int32's into a C++ function, you can have
-a C++ module: 
+a C++ module (see example.cc and example.py for this exact example compiled into code):
 
 #include <boost_common.h>
 ==============================
@@ -28,16 +28,16 @@ access the data pointer directly with myarr.data.
 
 To create a new uninitialized numpy array in C++ and return it: 
 ==============================
-pyarr<unsigned char> bar() 
+pyarr<int> bar() 
 {
     long int dims[] = {10, 20, 30};
-    pyarr<unsigned char> ret(3, dims);
+    pyarr<int> ret(3, dims);
     return ret;
 }
 ==============================
 To expose these functions to Python:
 ==============================
-BOOST_PYTHON_MODULE(libmy_cpp_module)
+BOOST_PYTHON_MODULE(libpyarr_example)
 {
     import_array(); /* THESE ARE IMPORTANT */
     boost_common(); /* YOU WILL INEXPLICABLY SEGFAULT WITHOUT THESE */
@@ -50,10 +50,10 @@ Then in your CMakeLists.txt:
 include(common.cmake)
 include(boost_util.cmake)
 
-add_library(my_cpp_module my_cpp_module.cc)
-set_target_properties(my_cpp_module PROPERTIES SUFFIX ".so") 
+add_library(pyarr_example example.cc)
+set_target_properties(pyarr_example PROPERTIES SUFFIX ".so") 
 # need the above or else it will be called a .dylib on OS X and python won't import it
-target_link_libraries(my_cpp_module boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+target_link_libraries(pyarr_example boost_common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 ==============================
 ==============================
 
@@ -63,13 +63,13 @@ to see what directories to include and link with and what libraries to link to.
 If you do use cmake, your new library will be in lib/, and you can either add an __init__.py 
 file to your lib/ directory, copy said library somewhere else, or add your lib/ directory to 
 your $PYTHONPATH. 
-Import it with 'import libmy_cpp_module'. You will see a bunch of harmless warnings; to 
+Import it with 'import libpyarr_example'. You will see a bunch of harmless warnings; to 
 suppress these, do
 ==============================
 import warnings
 with warnings.catch_warnings():
      warnings.simplefilter("ignore")
-     import libmy_cpp_module
+     import libpyarr_example
 ==============================
 
 IMPORTANT NOTES:
